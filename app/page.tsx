@@ -1,18 +1,12 @@
-import StudentDashboard from "../app/components/StudentDashboard";
+"use client";
 import Login from "../app/login/page";
 
-export default function Dashboard() {
-  const userRole = "student"; // This would typically come from your authentication logic
+export default function page() {
   const isAuthenticated = true; // This would also come from your authentication logic
   
-  if (!isAuthenticated) {
-    return <Login />;
-  }
-  
-  if (userRole === "student") {
-    return <StudentDashboard />;
-  } else if (userRole === "staff") {
-    return <div>Staff Dashboard (to be implemented)</div>;
+  if (isAuthenticated) {
+    window.location.href = "/dashboard";
+    return null; // Prevent rendering anything while redirecting
   } else {
     return <Login />;
   }

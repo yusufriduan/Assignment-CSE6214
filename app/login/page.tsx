@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Input from "../components/input";
+import Button from "../components/Button";
 
 interface MockBackendData {
     isValidPassword: boolean;
@@ -18,7 +19,7 @@ export default function Login() {
     const mockBackendData: MockBackendData = {
         isValidPassword: true,
         userPreferences: {
-            requiresTwoFactorAuth: true,
+            requiresTwoFactorAuth: false,
             email: "dummy@student.apu.edu.my",
         },
     };
@@ -50,10 +51,10 @@ export default function Login() {
                     <>
                         <h1 className="text-2xl font-bold">Login</h1>
                         <p className="text-sm text-gray-600">Let's get you logged back in!</p>
-                        <form className="mt-6 flex flex-col gap-8" onSubmit={handleLoginSubmit}>
-                            <Input label="Username" type="text" placeholder="Student ID / Staff ID" required />
-                            <div className="flex flex-col gap-1">
-                                <Input label="Password" type={passwordInput} placeholder="Password" id="login-password" required />
+                        <form className="mt-6 flex flex-col items-center gap-8 w-full" onSubmit={handleLoginSubmit}>
+                            <Input key="username" label="Username" type="text" placeholder="Student ID / Staff ID" required />
+                            <div className="flex flex-col gap-1 w-full">
+                                <Input key="password" label="Password" type={passwordInput} placeholder="Password" required />
                                 <div className="flex items-center mt-2">
                                     <input type="checkbox" id="showPassword" className="form-checkbox h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer" onClick={() => setShowPassword(!showPassword)} />
                                     <label htmlFor="showPassword" className="ml-2 block text-sm text-gray-700">
@@ -61,10 +62,7 @@ export default function Login() {
                                     </label>
                                 </div>
                             </div>
-                            <button type="submit" className="flex items-center justify-center gap-3 bg-blue-500 text-white py-3 rounded-md cursor-pointer hover:bg-blue-600 transition-colors">
-                                <span>→</span>
-                                <span>Login</span>
-                            </button>
+                            <Button type="submit" className="!bg-blue-500 !text-white py-3 !rounded-2xl !w-45 justify-between" buttonText="→ Login" />
                         </form>
                         <div className="text-sm text-gray-600 mt-8">
                             <p>New here?{" "}
@@ -80,11 +78,8 @@ export default function Login() {
                         <h1 className="text-2xl font-bold">Two-Factor Authentication</h1>
                         <p className="text-sm text-gray-600">The code sent to {mockBackendData.userPreferences.email}.</p>
                         <form className="mt-6 flex flex-col gap-8">
-                            <Input label="Authentication Code" type="text" placeholder="Enter 2FA code" required />
-                            <button type="submit" className="flex items-center justify-center gap-3 bg-blue-500 text-white py-3 rounded-md cursor-pointer hover:bg-blue-600 transition-colors">
-                                <span>→</span>
-                                <span>Verify</span>
-                            </button>
+                            <Input key="2faCode" label="Authentication Code" type="text" placeholder="Enter 2FA code" required />
+                            <Button type="submit" className="flex items-center justify-center gap-3 bg-blue-500 text-white py-3 rounded-md cursor-pointer hover:bg-blue-600 transition-colors" buttonText="→ Verify" />
                         </form>
                     </>
                 )}
