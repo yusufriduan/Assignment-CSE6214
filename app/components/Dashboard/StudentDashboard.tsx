@@ -8,9 +8,13 @@ import PreBooking from "../preBooking";
 import Profile from "../Profile";
 import EditProfile from "../EditProfile";
 
-export default function Student() {
-    const [activeSection, setActiveSection] = useState("home");
-    
+interface StudentDashboardProp {
+    default_sect: string | null
+}
+
+export default function Student({ default_sect }: StudentDashboardProp) {
+    const [activeSection, setActiveSection] = useState(default_sect || "home");
+
     const studentNav : NavItem[] = [
         { id: "home", label: "Home", icon: MdHome },
         { id: "booking", label: "Booking", icon: FaCalendarPlus },
