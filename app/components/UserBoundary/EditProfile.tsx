@@ -1,7 +1,7 @@
-import Button from "./Button";
-import Input from "./input";
+import Button from "../Button";
+import Input from "../input";
 import { MdPerson, MdOutlineMail, MdOutlinePhone, MdPassword } from "react-icons/md";
-import Toggle from "./toggleComponents";
+import Toggle from "../toggleComponents";
 import { useState } from "react";
 
 interface EditProfileProps {

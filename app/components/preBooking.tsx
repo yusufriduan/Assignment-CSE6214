@@ -1,7 +1,11 @@
 import Button from "./Button";
 import Input from "./input";
 
-export default function preBooking() {
+interface PreBookingProps{
+    setActiveSection: (section: string) => void;
+}
+
+export default function preBooking({ setActiveSection }: PreBookingProps) {
     return (
         <div className="p-6 text-lg gap-2 w-full h-full max-w-lg mx-auto flex flex-col">
             <header className="flex flex-col items-start gap-1">
@@ -15,7 +19,7 @@ export default function preBooking() {
                 <Input key="start-booking-date" label="Booking Date" type="datetime-local" placeholder="Booking Date" required />
                 <Input key="end-booking-date" label="End Booking Date" type="datetime-local" placeholder="End Booking Date" required />
                 <Input key="booking-purpose" label="Booking Purpose" type="text" placeholder="Booking Purpose" required />
-                <Button type="submit" className="!w-fit !rounded-3xl !text-white !py-3 !px-5 rounded-md !hover:bg-blue-600 !transition-colors" buttonText="+   Add Room" />
+                <Button type="submit" className="!w-fit !rounded-3xl !text-white !py-3 !px-5 rounded-md !hover:bg-blue-600 !transition-colors" buttonText="+   Add Room" onClick={() => setActiveSection('venue-booking')} />
             </form>
         </div>
     );

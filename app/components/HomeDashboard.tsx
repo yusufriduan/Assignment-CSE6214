@@ -1,6 +1,12 @@
 import Button from "./Button";
+import { useRouter } from "next/navigation";
 
-export default function HomeDashboard() {
+interface HomeProps {
+    setActiveSection: (section: string) => void;
+}
+
+export default function HomeDashboard({ setActiveSection }: HomeProps) {
+    const router = useRouter();
     const mockEvents = [
         {
             id: 1,
@@ -41,20 +47,24 @@ export default function HomeDashboard() {
         return mockEvents.some((event) => event.eventDates.includes(day));
     };
 
+    const upcomingEvents = mockEvents.filter((event) => {
+        return event.eventDates.some((date) => date >= today);
+    });
+
     const OpenReportNum = 5;
     const ClosedReportNum = 10;
     return (
         <div className="p-6 h-full w-full max-w-lg mx-auto">
             <header className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold mb-4">Hi, John!</h1>
-                <Button className="!w-10 !h-10 !p-2" buttonText="🔔" />
+                <Button className="!w-10 !h-10 !p-2" buttonText="🔔" onClick={() => {router.push('/notification')}} />
             </header>
 
             <div className="flex flex-col gap-4 w-full">
                 <div className="bg-background/20 z-50 backdrop-blur-md p-4 rounded-3xl shadow-md">
                     <div className="flex justify-between items-center mb-4">
                         <h2 className="text-xl font-bold mb-2">Calendar ({ShowMonth()})</h2>
-                        <Button className="!p-1 !w-8 !h-8" buttonText='→' />
+                        <Button className="!p-1 !w-8 !h-8" buttonText='→' onClick={() => {router.push('/calendar')}} />
                     </div>
                     <div className="flex flex-row gap-4 w-full justify-between items-start">
                         <div className="grid w-1/2 grid-cols-7 gap-1">
@@ -81,28 +91,35 @@ export default function HomeDashboard() {
                             })}
                         </div>
                         <div className="flex flex-col gap-2 w-1/2 pl-2">
-                        {mockEvents.map((event) => (
-                        <div
-                            key={event.id}
-                            className={`${event.color} rounded-4xl px-6 py-4 shadow-sm`}
-                        >
-                            <h3 className="text-sm font-bold text-black leading-tight">{event.title}</h3>
-                            <p className="text-xs text-black/80 mt-0.5 leading-tight">{event.timeframe}</p>
-                        </div>
-                        ))}
+                            {upcomingEvents.length > 0 ? (
+                                upcomingEvents.map((event) => (
+                                    <div
+                                        key={event.id}
+                                        className={`${event.color} rounded-2xl px-5 py-4 shadow-sm transition-transform hover:-translate-y-1 cursor-pointer`}
+                                        onClick={() => {router.push(`/bookingdetail/${event.id}`)}}
+                                    >
+                                        <h3 className="text-sm font-bold text-black leading-tight">{event.title}</h3>
+                                        <p className="text-xs text-black/70 mt-1 font-medium leading-tight">{event.timeframe}</p>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="py-8 text-center bg-white/50 rounded-2xl border border-dashed border-gray-300">
+                                    <span className="text-2xl block mb-2">🎉</span>
+                                    <p className="text-sm font-bold text-gray-600">Your schedule is clear!</p>
+                                </div>
+                            )}
                         
-                        {/* Extra Events Counter */}
-                        <div className="text-center mt-1 cursor-pointer hover:opacity-80">
-                        <span className="text-sm font-bold">+ 7 events</span>
+                            <div className="text-center mt-1 cursor-pointer hover:opacity-80">
+                                <span className="text-sm font-bold">+ 7 events</span>
+                            </div>
                         </div>
-                    </div>
                     </div>
                 </div>
 
                 <div className="bg-background/20 z-50 backdrop-blur-md p-5 rounded-3xl shadow-md">
                     <div className="flex justify-between items-center mb-6">
                         <h2 className="text-xl font-bold mb-2">Reports</h2>
-                        <Button className="!w-25 !h-10" buttonText='→' />
+                        <Button className="!w-25 !h-10 font-bold" buttonText='→' onClick={() => setActiveSection('profile-reports')} />
                     </div>
                     <div className="flex flex-col gap-6 w-full px-2">
                         <div className="flex flex-row items-end gap-4 w-full">

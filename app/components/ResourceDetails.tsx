@@ -1,8 +1,6 @@
 "use client"
 
 import BackButton from "@/app/components/BackButton";
-import { db } from "@/lib/DatabaseInitializer";
-import { collection, getDocs } from 'firebase/firestore/lite';
 import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
 import NavBar, {NavItem} from "@/app/components/NavBar";
@@ -28,9 +26,9 @@ export function ResourceDetails({resourceId}: ResourceDetailsProp){
     } 
 
     return(
-        <div className="bg-background max-w-screen min-h-screen m-0 p-0 box-border flex flex-col items-center overflow-x-hidden">
+        <div className="bg-background max-w-screen min-h-screen m-0 p-0 box-border flex flex-col overflow-x-hidden">
             <BackButton buttonName="CNMX1001" buttonDesc="Central Learning Complex (CLC)"></BackButton>
-            <div id="resource-img-container" className="relative w-7/8 h-72 rounded-2xl bg-gray-400 mt-24 overflow-hidden cursor-pointer">
+            <div id="resource-img-container" className="relative w-7/8 h-72 rounded-2xl bg-gray-400 mt-24 overflow-hidden cursor-pointer justify-center mx-auto">
                 <Image src="/metalpipe.svg" alt="placeholder-img" fill className="object-cover" sizes="33vw" loading="eager"></Image>
             </div>
             <div id="equipment-details-section" className="mt-8 mb-16 w-full max-h-screen pl-[6.25%] font-bold">
