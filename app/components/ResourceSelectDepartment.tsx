@@ -20,14 +20,15 @@ export function ResourceSelectDepartment({department}: ResourceSelectDepartmentP
     };
 
     return(
-        <div id="department-dropdown" className="relative w-full p-4">
-            <div id="dropdown-btn-section" onClick={toggleDropdown} className="relative cursor-pointer flex flex-row h-12 items-center mb-4">
-                <h1 className="font-mono font-semibold">{department}</h1>
+        <div id="department-dropdown" className="relative w-full">
+            <div id="dropdown-btn-section" onClick={toggleDropdown} className="relative cursor-pointer flex flex-row min-h-12 items-center mb-4">
+                <h1 className="font-mono font-semibold text-xs select-none w-[70%]">{department}</h1>
+                <button className="w-20 h-4 bg-secondary rounded-full"><p className="text-xs">+ Add rooms</p></button>
                 <div id="arrow-btn" ref={deptButtonRef} className="absolute right-0">
                     ▲
                 </div>
             </div>
-            <div ref={contentRef} id="content-section" className="w-full flex flex-col items-center">
+            <div ref={contentRef} id="content-section" className="w-full flex flex-col items-center mb-2">
                 <ResourceButton ResourceID={"1"} ResourceName="CNMX1001" isResourceManager={true} />
                 <ResourceButton ResourceID={"2"} ResourceName="CNMX1002" isResourceManager={true} />
             </div>
