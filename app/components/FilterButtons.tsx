@@ -1,5 +1,6 @@
 import { DEPARTMENTS } from "../constants";
 import { useState } from "react";
+import ScrollContainer from 'react-indiana-drag-scroll';
 
 interface FilterButtonProp{
     onClickHandler: (val: string) => void;
@@ -10,7 +11,7 @@ export function FilterButtons({onClickHandler}: FilterButtonProp){
     const [selectedKey, setSelectedKey] = useState<string | null>("all");
 
     return(
-        <div className="flex flex-row gap-2 overflow-x-auto scrollbar-none [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+        <ScrollContainer className="flex flex-row gap-2 overflow-x-auto select-none scrollbar-none [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
             <button key="all" onClick={() => {setSelectedKey("all"); onClickHandler("All")}} className={`min-w-16 h-8 border-2 rounded-full font-semibold cursor-pointer ${selectedKey === "all" ? "bg-secondary" : "bg-white"}`}>
                 All
             </button>
@@ -21,6 +22,6 @@ export function FilterButtons({onClickHandler}: FilterButtonProp){
                     </button>
                 ))
             }
-        </div>
+        </ScrollContainer>
     )
 }
