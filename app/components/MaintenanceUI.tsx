@@ -53,7 +53,7 @@ export class MaintenanceUI extends React.Component<MaintenanceUIProps>{
         return(
             <div className="p-4 w-full min-h-full flex flex-col">
                 <BackButton buttonName="Back" buttonDesc={`Report #${requestId}`}/>
-                <div id="ticket-detail" className="w-full flex justify-between mt-16">
+                <div id="ticket-detail" className="w-full flex justify-between">
                     <h1 className="font-semibold">Ticket Number #{requestId}</h1>
                     <div id="status-cont" className="w-24 h-8 bg-green-300 flex items-center justify-center rounded-full">
                         <h1 className="font-semibold" id="report-status-text">Open</h1>

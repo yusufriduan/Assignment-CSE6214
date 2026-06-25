@@ -2,6 +2,7 @@
 
 import { ResourceButton } from "./ResourceButton"
 import { useRef } from "react"
+import { useRouter } from "next/navigation"
 
 interface ResourceSelectDepartmentProp{
     department: string;
@@ -11,6 +12,7 @@ export function ResourceSelectDepartment({department}: ResourceSelectDepartmentP
 
     const contentRef = useRef<HTMLDivElement>(null);
     const deptButtonRef = useRef<HTMLDivElement>(null);
+    const router = useRouter();
 
     const toggleDropdown = () => {
         if (contentRef.current && deptButtonRef.current) {
@@ -23,7 +25,7 @@ export function ResourceSelectDepartment({department}: ResourceSelectDepartmentP
         <div id="department-dropdown" className="relative w-full">
             <div id="dropdown-btn-section" onClick={toggleDropdown} className="relative cursor-pointer flex flex-row min-h-12 items-center mb-4">
                 <h1 className="font-mono font-semibold text-xs select-none w-[70%]">{department}</h1>
-                <button className="w-20 h-4 bg-secondary rounded-full"><p className="text-xs">+ Add rooms</p></button>
+                <button onClick={(e) => {e.stopPropagation() ;router.push('/add_resource')}} className="w-20 h-4 bg-secondary rounded-full"><p className="text-xs">+ Add rooms</p></button>
                 <div id="arrow-btn" ref={deptButtonRef} className="absolute right-0">
                     ▲
                 </div>

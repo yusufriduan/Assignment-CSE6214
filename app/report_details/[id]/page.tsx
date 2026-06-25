@@ -1,7 +1,15 @@
+"use client";
 import { MaintenanceUI } from "@/app/components/MaintenanceUI";
+import { use } from "react";
 
-export default function ReportDetails(){
+interface ReportDetailsProps{
+    params: Promise<{id: string}>;
+}
+
+export default function ReportDetails({params}: ReportDetailsProps){
+    const { id } = use(params);
+    
     return(
-        <MaintenanceUI pageType="detail" MaintenanceId="1" />
+        <MaintenanceUI pageType="detail" MaintenanceId={id} />
     )
 }
