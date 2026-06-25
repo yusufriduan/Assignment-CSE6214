@@ -1,8 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
 import NavBar, { NavItem } from "../NavBar";
-import { MdHome, MdPerson } from "react-icons/md";
-import { FaCalendarPlus } from "react-icons/fa";
+import { LuHouse, LuCalendarPlus } from "react-icons/lu";
+import { MdOutlinePerson } from "react-icons/md";
 import { useSearchParams, useRouter } from "next/navigation";
 import HomeDashboard from "../HomeDashboard";
 import PreBooking from "../preBooking";
@@ -43,9 +43,9 @@ export default function Student({ default_sect }: StudentDashboardProp) {
     };
 
     const studentNav : NavItem[] = [
-        { id: "home", label: "Home", icon: MdHome },
-        { id: "booking", label: "Booking", icon: FaCalendarPlus },
-        { id: "profile", label: "Profile", icon: MdPerson },
+        { id: "home", label: "Home", icon: LuHouse },
+        { id: "booking", label: "Booking", icon: LuCalendarPlus },
+        { id: "profile", label: "Profile", icon: MdOutlinePerson },
     ];
 
     const renderContent = () => {
