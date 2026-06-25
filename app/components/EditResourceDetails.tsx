@@ -1,7 +1,6 @@
 "use client"
 
 import BackButton from "@/app/components/BackButton";
-import { collection, getDocs } from 'firebase/firestore/lite';
 import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
 import NavBar, {NavItem} from "@/app/components/NavBar";
@@ -10,17 +9,42 @@ import { FaCalendarPlus } from "react-icons/fa";
 import { redirect } from "next/navigation";
 import { EquipmentCounter } from "./EquipmentCounter";
 import Input from "./input";
+import { Resource, addResource, modifyResource } from "../actions/ResourceController";
+import { createClient } from "../utils/supabase/client";
 
 interface ResourceDetailsProp{
-    resourceId?: string
+    resourceId?: string;
+    department?: string;
 }
 
-export function EditResourceDetails({resourceId}: ResourceDetailsProp){
+export function EditResourceDetails({resourceId, department}: ResourceDetailsProp){
     const [activeSection, setActiveSection] = useState("booking");
     const [roomName, setRoomName] = useState("");
-    const [imageSource, setImageSource] = useState(null)
+    const [imageSource, setImageSource] = useState<string | null>(null)
     type ResourceTuple = [string, number];
     const [counts, setCounts] = useState<ResourceTuple[]>([]);
+
+    // input stuff
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [newImageFile, setNewImageFile] = useState<File>();
+
+    const supabase = createClient()
+
+    const handleContainerClick = () => {
+        if(fileInputRef.current)
+            fileInputRef.current.click();
+    };
+
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const target = event.target as HTMLInputElement;
+        if(target && target.files){
+            const file = target.files[0];
+            if (file) {
+                setNewImageFile(file);
+                setImageSource(URL.createObjectURL(file));
+            }
+        }
+    };
     
     const bookingRecipientNav : NavItem[] = [
         { id: "home", label: "Home", icon: MdHome },
@@ -40,15 +64,80 @@ export function EditResourceDetails({resourceId}: ResourceDetailsProp){
         return updated;
         });
     };
+    
+    async function handleSubmit(e: React.FormEvent<HTMLFormElement>){
+        e.preventDefault();
+        
+        const formData = new FormData(e.currentTarget);
+        const newName = formData.get("room-name");
+        let equipmentArr: any = []
+        counts.map(([name, count], index) => {
+            if(count > 0){
+                equipmentArr.push({
+                    equipment_name: formData.get(`resource_name_${index}`)?.toString(),
+                    equipment_count: Number(count)
+                })
+            }
+        })
+
+        let imageUrl: string | null = null;
+        if(newImageFile){
+            const fileExt = newImageFile.name.split('.').pop();
+            const timestamp = Date.now();
+            const filePath = `${resourceId}/$${timestamp}.${fileExt}`;
+
+            const { error: uploadError } = await supabase.storage
+                .from('media')
+                .upload(filePath, newImageFile, {
+                cacheControl: '3600',
+                upsert: false
+            });
+
+            if (uploadError) throw uploadError;
+
+            const { data } = supabase.storage.from('media').getPublicUrl(filePath);
+            imageUrl = data.publicUrl;
+        }
+        if(resourceId === undefined){
+            const payload: Resource = {
+                id: null,
+                name: newName ? newName.toString() : "Unnamed Room",
+                dept: department !== undefined ? department : "Unknown Department",
+                img: imageUrl,
+                status: "Active",
+                equipments: equipmentArr
+            }
+
+            const res = await addResource(payload);
+            if(res?.success){
+                alert('Successfully added resource!');
+            }
+        } else {
+            if(newName){
+                const res = await modifyResource(resourceId, newName.toString(), imageUrl, equipmentArr);
+                if(res.success){
+                    alert('Successfully editted resource!');
+                }
+            }
+                
+        }  
+    }
 
     return(
         <div className="bg-background max-w-screen min-h-screen m-0 p-0 box-border flex flex-col overflow-x-hidden">
             <BackButton buttonName="Back" buttonDesc={resourceId === undefined ? "Adding Resource" : `Editing ${resourceId}`}></BackButton>
             
             <div className="flex flex-col justify-center items-center">
-                <div id="resource-img-container" className="group flex flex-col justify-center items-center relative w-7/8 h-72 rounded-2xl bg-gray-400 overflow-hidden cursor-pointer">
+                <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    accept="image/*"
+                    className="hidden" 
+                />
+                <div onClick={handleContainerClick} id="resource-img-container" className="group flex flex-col justify-center items-center relative w-7/8 h-72 rounded-2xl bg-gray-400 overflow-hidden cursor-pointer">
                     <div className={`absolute inset-0 w-full h-full bg-gray-500/50 z-10 justify-center items-center ${imageSource === null ? "flex" : "hidden"} group-hover:flex`}>
-                        <p className="text-xl font-mono font-bold text-shadow-2xs text-shadow-white">+ Edit Resource</p>
+                        <p className="text-xl font-mono font-bold text-shadow-2xs text-shadow-white">{imageSource === null ? "+ Add Image" : "+ Edit Image"}</p>
                     </div>
                     {
                         imageSource ? <Image src={imageSource} alt="placeholder-img" fill className="object-cover z-1" sizes="33vw" loading="eager"></Image>
@@ -64,7 +153,7 @@ export function EditResourceDetails({resourceId}: ResourceDetailsProp){
             <form className="w-full">
                 <div className="w-full flex flex-col relative p-8 justify-start">
                     <h1>Room Name:</h1>
-                    <input id="room-name" defaultValue={roomName} placeholder="Add resource name" className="w-11/12 h-8 bg-accent rounded-full p-2"></input>
+                    <input name="room-name" defaultValue={roomName} placeholder="Add resource name" className="w-11/12 h-8 bg-accent rounded-full p-2" required></input>
                 </div>
                 <div id="equipment-details-section" className="mb-16 w-full max-h-screen font-bold">
                     <div className="relative flex flex-row items-center mb-8 ml-[6.25%]">
@@ -88,10 +177,11 @@ export function EditResourceDetails({resourceId}: ResourceDetailsProp){
                                     <Input 
                                     label="" 
                                     type="text" 
-                                    key={name} 
+                                    name={`resource_name_${index}`} 
                                     className="text-md font-medium ml-[6.25%] w-[50%] border-2 rounded-full" 
                                     placeholder="Enter Resource Name" 
                                     defaultValue={name}
+                                    required
                                     />
                                     <div className="absolute right-0 mr-[6.25%]">
                                         <EquipmentCounter count={count} onChange={(newCount) => handleCountChange(index, newCount)} />

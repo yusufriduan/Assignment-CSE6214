@@ -7,7 +7,7 @@ import NavBar, {NavItem} from "@/app/components/NavBar";
 import { MdHome, MdPerson } from "react-icons/md";
 import { FaCalendarPlus } from "react-icons/fa";
 import { redirect } from "next/navigation";
-import { fetchResource, ResourceDataPayload } from "../actions/ResourceController";
+import { fetchResource, Resource } from "../actions/ResourceController";
 import { DEPARTMENTS } from "../constants";
 
 interface ResourceDetailsProp{
@@ -17,7 +17,7 @@ interface ResourceDetailsProp{
 export function ResourceDetails({resourceId}: ResourceDetailsProp){
     const [activeSection, setActiveSection] = useState("booking");
     const [loading, setLoading] = useState<boolean>(true);
-    const [currentResource, setCurrentResource] = useState<ResourceDataPayload | null>(null)
+    const [currentResource, setCurrentResource] = useState<Resource | null>(null)
 
     const bookingRecipientNav : NavItem[] = [
         { id: "home", label: "Home", icon: MdHome },
@@ -57,12 +57,13 @@ export function ResourceDetails({resourceId}: ResourceDetailsProp){
                     <BackButton buttonName={currentResource ? currentResource.name : "N/A"} buttonDesc={currentResource ? `${DEPARTMENTS.get(currentResource.dept)} (${currentResource.dept})` : "N/A"}></BackButton>
                     <div id="resource-img-container" className="relative w-7/8 h-72 rounded-2xl bg-gray-400 mt-4 overflow-hidden cursor-pointer justify-center mx-auto">
                         {
-                            currentResource ?
+                            currentResource && currentResource.img ?
                             <Image src={currentResource.img} alt="placeholder-img" fill className="object-cover" sizes="33vw" loading="eager"></Image>
                             :
                             null
                         }
                     </div>
+                    <h1>Status: <span className={currentResource ? (currentResource.status === "Available" ? "bg-green-400 text-black" : "bg-gray-400 text-gray-600") : "bg-gray-400 text-gray-600"}>{currentResource ? currentResource.status : "Unavailable"}</span></h1>
                     <div id="equipment-details-section" className="mt-8 mb-16 w-full max-h-screen pl-[6.25%] font-bold">
                         <h1>Equipment Included:</h1>
                         <div className="pl-4">
@@ -70,7 +71,7 @@ export function ResourceDetails({resourceId}: ResourceDetailsProp){
                                 {
                                     currentResource && currentResource.equipments.length > 0 ?
                                         currentResource.equipments.map((equipment, index) => {
-                                            return <li key={index}>{equipment[0]} ({equipment[1]} available)</li>
+                                            return <li key={index}>{equipment.equipment_name} ({equipment.equipment_count} available)</li>
                                         })
                                     :
                                     <p>No Equipments</p>
