@@ -1,3 +1,5 @@
+import { Timestamp } from 'firebase/firestore';
+
 export interface User {
     user_id: string;
     name: string;
@@ -39,8 +41,8 @@ export interface MaintenanceRequest {
     fault_detail: string;
     proof_url: string;
     request_status: "Awaiting Approval" | "Scheduled" | "Resolved";
-    request_date: Date;
-    schedule_service_date: Date;
+    request_date: Date | Timestamp | string;
+    schedule_service_date: Date | Timestamp | string;
 }
 
 export interface Notification {

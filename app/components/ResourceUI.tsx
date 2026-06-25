@@ -6,7 +6,7 @@ import Button from "./Button";
 import { DEPARTMENTS } from "../constants";
 
 interface ResourceUIProps{
-    pageType: "list" | "detail" | "edit";
+    pageType: "list" | "detail" | "edit" | "add";
     resourceId?: string;
 }
 
@@ -24,7 +24,7 @@ export class ResourceUI extends React.Component<ResourceUIProps>{
                 </header>
                 {
                     [...DEPARTMENTS.entries()].map(([key, val]) => (
-                        <ResourceSelectDepartment department={val} />
+                        <ResourceSelectDepartment key={key} department={val} />
                     ))
                 }
                 <div className="h-32 mt-2"></div>
@@ -39,7 +39,7 @@ export class ResourceUI extends React.Component<ResourceUIProps>{
         )
     }
     
-    public static modifyResourceForm(resourceID: string){
+    public static modifyResourceForm(resourceID?: string){
         return(
             <EditResourceDetails resourceId={resourceID} />
         )
@@ -54,6 +54,7 @@ export class ResourceUI extends React.Component<ResourceUIProps>{
                 {pageType === "list" && ResourceUI.displayList()}
                 {pageType === "detail" && resourceId !== undefined && ResourceUI.viewResource(resourceId)}
                 {pageType === "edit" && resourceId !== undefined && ResourceUI.modifyResourceForm(resourceId)}
+                {pageType === "add" && ResourceUI.modifyResourceForm()}
             </div>
         );
     }
