@@ -47,7 +47,7 @@ export function EditResourceDetails({resourceId}: ResourceDetailsProp){
             
             <div className="flex flex-col justify-center items-center">
                 <div id="resource-img-container" className="group flex flex-col justify-center items-center relative w-7/8 h-72 rounded-2xl bg-gray-400 overflow-hidden cursor-pointer">
-                    <div className={`absolute inset-0 w-full h-full bg-gray-500/50 z-10 justify-center items-center ${resourceId === undefined ? "flex" : "hidden"} group-hover:flex`}>
+                    <div className={`absolute inset-0 w-full h-full bg-gray-500/50 z-10 justify-center items-center ${imageSource === null ? "flex" : "hidden"} group-hover:flex`}>
                         <p className="text-xl font-mono font-bold text-shadow-2xs text-shadow-white">+ Edit Resource</p>
                     </div>
                     {
