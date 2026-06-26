@@ -1,5 +1,5 @@
 "use server";
-import { UserController } from "@/app/actions/UserController";
+import { registerUser, loginUser, verifyEmail, resetPassword } from "@/app/actions/UserController";
 
 export async function handleRegistration(formData: FormData) {
     const user_id = formData.get("student-id") as string;
@@ -15,7 +15,7 @@ export async function handleRegistration(formData: FormData) {
         return;
     }
 
-    const response = await UserController.registerUser({
+    const response = await registerUser({
         user_id,
         name,
         email,
@@ -35,7 +35,7 @@ export async function handleLogin(formData: FormData) {
         return { success: false, message: "Student ID and password are required" };
     }
 
-    const response = await UserController.loginUser(user_id, password);
+    const response = await loginUser(user_id, password);
 
     return response;
 }
@@ -46,7 +46,7 @@ export async function handleVerifyEmail(formData: FormData) {
     if (!email)
         return { success: false, message: "Email is required" };
 
-    return await UserController.verifyEmail(email);
+    return await verifyEmail(email);
 }
 
 export async function handleResetPassword(formData: FormData) {
@@ -62,5 +62,5 @@ export async function handleResetPassword(formData: FormData) {
         return { success: false, message: "Passwords do not match" };
     }
 
-    return await UserController.resetPassword(user_id, newPassword);
+    return await resetPassword(user_id, newPassword);
 }

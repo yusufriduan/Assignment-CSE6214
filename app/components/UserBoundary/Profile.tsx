@@ -4,7 +4,7 @@ import ReportCard from "../ReportCard";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Booking, MaintenanceRequest, User } from "@/types";
-import { getStudentBookings } from "@/app/actions/bookingActions";
+import { getStudentBookings } from "@/app/actions/BookingController";
 import { getUserRequest } from "@/app/actions/MaintenanceController";
 import { useUser } from "@/app/components/UserBoundary/UserContext";
 

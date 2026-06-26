@@ -1,4 +1,5 @@
 import { Timestamp } from 'firebase-admin/firestore';
+import { DocumentReference } from 'firebase-admin/firestore';
 
 export interface User {
     user_id: string;
@@ -23,15 +24,14 @@ export interface Resource {
 
 export interface Booking {
     booking_id: string;
-    booking_author: string;
-    booking_owner: string;
+    booking_owner: User;
     booking_start: Date;
     booking_end: Date;
-    booking_status: "Booked" | "Check-in" | "Ended" | "Cancelled" | "Awaiting Approval";
+    booking_status: "Booked" | "Check-in" | "Ended" | "Cancelled" | "Awaiting Approval" | "Rejected";
     booking_reason: string;
-    resource: string;
+    resource: Resource;
     request_created_at: Date;
-    prev_booking_id?: string | null;
+    prev_booking?: DocumentReference | null;
 }
 
 export interface MaintenanceRequest{

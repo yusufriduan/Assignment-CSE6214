@@ -10,7 +10,7 @@ export default async function Dashboard({ searchParams }: PageProps) {
   const resolvedSearchParams = await searchParams;
   const default_sect = resolvedSearchParams.default_sect || null;
 
-  const userRole = 'student';
+  const userRole = 'resourcemanager';
 
   if (userRole === "student") {
     return <StudentDashboard default_sect={default_sect} />;
