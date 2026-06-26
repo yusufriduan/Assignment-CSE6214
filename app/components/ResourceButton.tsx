@@ -21,7 +21,7 @@ export function ResourceButton({ResourceID, ResourceName, isResourceManager}: Re
     }
 
     return(
-        <div onClick={handleClick} id="button-cont" className="relative w-4/5 h-16 bg-secondary rounded-xl p-4 cursor-pointer mt-1 mb-1">
+        <div onClick={handleClick} id="button-cont" className="relative w-72 h-16 bg-secondary rounded-xl p-4 cursor-pointer mt-1 mb-1">
             <h1 className="font-mono font-semibold text-xl">{ResourceName}</h1>
             { isResourceManager
             ? 

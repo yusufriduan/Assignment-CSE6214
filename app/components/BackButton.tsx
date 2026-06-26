@@ -11,7 +11,7 @@ export default function BackButton({buttonName, buttonDesc}: BackButtonProp){
     const router = useRouter();
     
     return(
-        <button onClick={() => router.back()} id="back-btn" className="absolute top-0 left-0 flex flex-row w-fit h-20 p-4 cursor-pointer">
+        <button onClick={() => router.back()} id="back-btn" className="flex flex-row w-fit h-20 p-4 cursor-pointer">
             <div id="left side" className="w-8 h-10 items-center">
                 <p>
                     ←
