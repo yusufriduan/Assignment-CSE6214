@@ -21,42 +21,25 @@ export default function HomeDashboard({ setActiveSection }: HomeProps) {
 
     useEffect(() => {
         async function fetchSummary() {
-            try {
-                if (!user?.user_id) return;
-                const data = await getDashboardSummary(user.user_id);
-                setSummary(data);
-            } catch (error) {
-                console.error("Error fetching dashboard summary:", error);
-            } finally {
+            if (!isUserLoading && user?.user_id) {
+                setIsLoading(true);
+                try {
+                    const data = await getDashboardSummary(user.user_id);
+                    if (data) {
+                        setSummary(data);
+                    }
+                } catch (error) {
+                    console.error("Error fetching dashboard summary:", error);
+                } finally {
+                    setIsLoading(false);
+                }
+            } else if (!isUserLoading && !user?.user_id) {
+                // User is loaded, but there's no user (e.g. not logged in)
                 setIsLoading(false);
             }
         }
         fetchSummary();
-    }, [user]);
-
-    const mockEvents = [
-        {
-            id: 1,
-            title: 'Ideabox 1',
-            timeframe: '06/06/2026, 13:00 - 15:00',
-            color: 'bg-[#a3f870]', // Light green
-            eventDates: [6], 
-        },
-        {
-            id: 2,
-            title: 'CQAR 3025 - FAIE',
-            timeframe: '17/06/2026 - 19/06/2026',
-            color: 'bg-[#f6d765]', // Yellow
-            eventDates: [17, 18, 19],
-        },
-        {
-            id: 3,
-            title: 'CQAR 2007 - FCI',
-            timeframe: '30/06/2026, 11:00 - 13:00',
-            color: 'bg-[#ff7b72]', // Red
-            eventDates: [30],
-        },
-    ];
+    }, [user, isUserLoading]);
     
     function ShowMonth() {
         const dates = new Date();
@@ -65,21 +48,20 @@ export default function HomeDashboard({ setActiveSection }: HomeProps) {
         return `${month} ${year}`;
     }
 
-    const today = new Date().getDate();
-    const daysInCurrentMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
+    const today = new Date();
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+    const todayDate = today.getDate();
+    const daysInCurrentMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
     const daysInMonth = Array.from({ length: daysInCurrentMonth }, (_, i) => i + 1);
     const daysOfWeek = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
     const hasEvent = (day: number) => {
-        return mockEvents.some((event) => event.eventDates.includes(day));
+        return summary.upcomingEvents.some((event) => {
+            const eventDate = new Date(event.booking_start);
+            return eventDate.getFullYear() === currentYear && eventDate.getMonth() === currentMonth && eventDate.getDate() === day;
+        });
     };
-
-    const upcomingEvents = mockEvents.filter((event) => {
-        return event.eventDates.some((date) => date >= today);
-    });
-
-    const OpenReportNum = 5;
-    const ClosedReportNum = 10;
     return (
         <div className="p-6 h-full w-full max-w-lg mx-auto">
             <header className="flex justify-between items-center mb-6">
@@ -103,7 +85,7 @@ export default function HomeDashboard({ setActiveSection }: HomeProps) {
                             </div>
                             ))}
                             {daysInMonth.map((day) => {
-                                const isToday = day === today;
+                                const isToday = day === todayDate;
                                 return (
                                     <div 
                                         key={`day-${day}`} 
@@ -120,17 +102,28 @@ export default function HomeDashboard({ setActiveSection }: HomeProps) {
                             })}
                         </div>
                         <div className="flex flex-col gap-2 w-1/2 pl-2">
-                            {upcomingEvents.length > 0 ? (
-                                upcomingEvents.map((event) => (
-                                    <div
-                                        key={event.id}
-                                        className={`${event.color} rounded-2xl px-5 py-4 shadow-sm transition-transform hover:-translate-y-1 cursor-pointer`}
-                                        onClick={() => {router.push(`/bookingdetail/${event.id}`)}}
-                                    >
-                                        <h3 className="text-sm font-bold text-black leading-tight">{event.title}</h3>
-                                        <p className="text-xs text-black/70 mt-1 font-medium leading-tight">{event.timeframe}</p>
-                                    </div>
-                                ))
+                            {summary.upcomingEvents.length > 0 ? (
+                                summary.upcomingEvents.slice(0, 3).map((booking) => {
+                                    const timeframe = `${booking.booking_start.toLocaleDateString([], {day: '2-digit', month: '2-digit', year: 'numeric'})}, ${booking.booking_start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - ${booking.booking_end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+                                    
+                                    const statusColor = 
+                                        booking.booking_status === "Booked" ? "bg-green-400" :
+                                        booking.booking_status === "Awaiting Approval" ? "bg-yellow-400" :
+                                        booking.booking_status === "Rejected" ? "bg-red-400" :
+                                        booking.booking_status === "Check-in" ? "bg-blue-400" :
+                                        "bg-gray-200";
+
+                                    return (
+                                        <div
+                                            key={booking.booking_id}
+                                            className={`${statusColor} rounded-2xl px-5 py-4 shadow-sm transition-transform hover:-translate-y-1 cursor-pointer`}
+                                            onClick={() => setActiveSection('profile')}
+                                        >
+                                            <h3 className="text-sm font-bold text-black leading-tight">{booking.resource.resource_name}</h3>
+                                            <p className="text-xs text-black/70 mt-1 font-medium leading-tight">{timeframe}</p>
+                                        </div>
+                                    );
+                                })
                             ) : (
                                 <div className="py-8 text-center bg-white/50 rounded-2xl border border-dashed border-gray-300">
                                     <span className="text-2xl block mb-2">🎉</span>
@@ -138,8 +131,8 @@ export default function HomeDashboard({ setActiveSection }: HomeProps) {
                                 </div>
                             )}
                         </div>
-                        {upcomingEvents.length > 3 ? (
-                            <div className="text-sm text-gray-500 mt-2">+{upcomingEvents.length - 3} more</div>
+                        {summary.upcomingEvents.length > 3 ? (
+                            <div className="text-sm text-gray-500 mt-2">+{summary.upcomingEvents.length - 3} more</div>
                         ) : null
                         }
                     </div>
