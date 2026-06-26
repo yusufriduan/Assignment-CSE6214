@@ -1,189 +1,150 @@
 "use client";
 
 import { useState } from "react";
-import Button from "../components/Button";
+import { MdHome, MdCalendarMonth, MdPerson } from "react-icons/md";
 
-interface FaultReportForm {
+interface FaultReport {
   resourceId: string;
   location: string;
   description: string;
-  photo: File | null;
 }
-
-interface FaultReportItem {
-  id: number;
-  resourceId: string;
-  location: string;
-  description: string;
-  status: string;
-  createdAt: string;
-}
-
-const sampleReports: FaultReportItem[] = [
-  {
-    id: 1,
-    resourceId: "CLC-204-PRJ",
-    location: "CLC 204",
-    description: "Projector lamp is flickering during presentations.",
-    status: "Open",
-    createdAt: "2026-06-20 11:30",
-  },
-  {
-    id: 2,
-    resourceId: "FCI-LAB-PC02",
-    location: "FCI Lab",
-    description: "Workstation computer is not powering on.",
-    status: "Under review",
-    createdAt: "2026-06-18 15:05",
-  },
-];
 
 export default function FaultReportPage() {
-  const [report, setReport] = useState<FaultReportForm>({
+  const [form, setForm] = useState<FaultReport>({
     resourceId: "",
     location: "",
     description: "",
-    photo: null,
   });
-  const [reports] = useState<FaultReportItem[]>(sampleReports);
-  const [submitted, setSubmitted] = useState(false);
+  const [images, setImages] = useState<string[]>([]);
 
-  const handleChange = (field: keyof FaultReportForm, value: string | File | null) => {
-    setReport((prev) => ({ ...prev, [field]: value }));
+  const handleChange = (field: keyof FaultReport, value: string) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (event: any) => {
-    event.preventDefault();
-    setSubmitted(true);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+  const handleImageUpload = (event: any) => {
+    const files = event.target.files;
+    if (files) {
+      const newImages = Array.from(files).map((file: any) => URL.createObjectURL(file));
+      setImages([...images, ...newImages]);
+    }
+  };
+
+  const handleSubmit = (e: any) => {
+    e.preventDefault();
+    console.log("Submitting:", form, "Images:", images);
+    alert("Fault report submitted!");
+    setForm({ resourceId: "", location: "", description: "" });
+    setImages([]);
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="mx-auto w-full max-w-6xl">
-        <div className="mb-8 rounded-[2rem] bg-white p-8 shadow-xl shadow-slate-200/40 sm:p-10">
-          <div className="mb-6">
-            <h1 className="text-3xl font-semibold text-slate-900">Report a Fault</h1>
-            <p className="mt-2 max-w-2xl text-sm text-slate-600">
-              Submit a maintenance request for faulty equipment or room issues. The Resource Manager will be notified and can follow up on the issue.
-            </p>
-          </div>
+    <div className="h-full w-full max-w-lg mx-auto flex flex-col pb-32">
+      {/* Header */}
+      <div className="p-6 border-b border-gray-300">
+        <h1 className="text-3xl font-bold text-black">Report a Fault</h1>
+      </div>
 
-          {submitted && (
-            <div className="mb-6 rounded-3xl border border-green-200 bg-green-50 p-4 text-sm text-green-900">
-              Your fault report has been recorded. A notification will be sent to the resource manager for review.
+      {/* Form Content */}
+      <form className="p-6 space-y-5 flex-1" onSubmit={handleSubmit}>
+        {/* Report Title */}
+        <div>
+          <label className="block text-base font-bold text-black mb-2">Report Title</label>
+          <input
+            type="text"
+            value={form.resourceId}
+            onChange={(e) => handleChange("resourceId", e.target.value)}
+            placeholder="Equipment name or issue"
+            className="w-full bg-gray-300 rounded-full px-4 py-3 text-base font-medium text-gray-800 outline-none focus:ring-2 focus:ring-blue-400"
+            required
+          />
+        </div>
+
+        {/* Venue */}
+        <div>
+          <label className="block text-base font-bold text-black mb-2">Venue</label>
+          <input
+            type="text"
+            value={form.location}
+            onChange={(e) => handleChange("location", e.target.value)}
+            placeholder="Room or location"
+            className="w-full bg-gray-300 rounded-full px-4 py-3 text-base font-medium text-gray-800 outline-none focus:ring-2 focus:ring-blue-400"
+            required
+          />
+        </div>
+
+        {/* Report Description */}
+        <div>
+          <label className="block text-base font-bold text-black mb-2">Report Description</label>
+          <textarea
+            value={form.description}
+            onChange={(e) => handleChange("description", e.target.value)}
+            placeholder="Describe the fault in detail"
+            className="w-full bg-gray-200 rounded-3xl px-4 py-3 text-base text-gray-800 outline-none focus:ring-2 focus:ring-blue-400 resize-none"
+            rows={5}
+            required
+          />
+        </div>
+
+        {/* Proof of Faulty */}
+        <div>
+          <label className="block text-base font-bold text-black mb-3">Proof of faulty</label>
+
+          <input
+            type="file"
+            multiple
+            accept="image/*"
+            onChange={handleImageUpload}
+            className="hidden"
+            id="imageUpload"
+          />
+          <label
+            htmlFor="imageUpload"
+            className="block bg-gray-300 rounded-3xl aspect-video flex items-center justify-center cursor-pointer hover:bg-gray-400 transition"
+          >
+            <div className="text-center">
+              <p className="text-lg font-semibold text-gray-700">+ Add Images</p>
+              {images.length > 0 && (
+                <p className="text-sm text-gray-600 mt-1">{images.length} image(s) selected</p>
+              )}
+            </div>
+          </label>
+
+          {/* Display uploaded images */}
+          {images.length > 0 && (
+            <div className="mt-3 flex gap-2 overflow-x-auto">
+              {images.map((image, idx) => (
+                <img key={idx} src={image} alt={`Uploaded ${idx}`} className="rounded-2xl w-20 h-20 object-cover flex-shrink-0" />
+              ))}
             </div>
           )}
+        </div>
 
-          <form className="grid gap-6 lg:grid-cols-[1.3fr_0.7fr]" onSubmit={handleSubmit}>
-            <div className="space-y-5">
-              <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
-                <h2 className="text-xl font-semibold text-slate-900">Fault Details</h2>
-                <p className="mt-2 text-sm text-slate-600">Enter the resource and fault details clearly so maintenance can act fast.</p>
-              </div>
+        {/* Submit Button */}
+        <div className="pt-4">
+          <button
+            type="submit"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 text-lg rounded-full transition"
+          >
+            Submit Report
+          </button>
+        </div>
+      </form>
 
-              <div className="flex flex-col gap-2">
-                <label htmlFor="resourceId" className="text-sm font-bold text-slate-900">Resource ID</label>
-                <input
-                  id="resourceId"
-                  type="text"
-                  placeholder="Example: CLC-204-PRJ"
-                  value={report.resourceId}
-                  onChange={(event) => handleChange("resourceId", event.target.value)}
-                  required
-                  className="w-full rounded-3xl border border-slate-200 bg-white p-4 text-sm text-slate-900 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                />
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <label htmlFor="location" className="text-sm font-bold text-slate-900">Location</label>
-                <input
-                  id="location"
-                  type="text"
-                  placeholder="Example: CLC 204"
-                  value={report.location}
-                  onChange={(event) => handleChange("location", event.target.value)}
-                  required
-                  className="w-full rounded-3xl border border-slate-200 bg-white p-4 text-sm text-slate-900 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                />
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <label htmlFor="description" className="text-sm font-bold text-slate-900">Issue Description</label>
-                <textarea
-                  id="description"
-                  rows={5}
-                  value={report.description}
-                  onChange={(event) => handleChange("description", event.target.value)}
-                  placeholder="Describe the issue and any steps you noticed before the fault appeared."
-                  className="w-full rounded-3xl border border-slate-200 bg-white p-4 text-sm text-slate-900 shadow-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                  required
-                />
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <label htmlFor="photo" className="text-sm font-bold text-slate-900">Upload Photo (optional)</label>
-                <input
-                  id="photo"
-                  type="file"
-                  accept="image/*"
-                  onChange={(event) => handleChange("photo", event.target.files ? event.target.files[0] : null)}
-                  className="text-sm text-slate-700 file:mr-4 file:rounded-full file:border-0 file:bg-blue-600 file:px-4 file:py-2 file:text-white file:shadow-sm"
-                />
-                <p className="text-xs text-slate-500">Attach an image if available to help the maintenance team verify the issue faster.</p>
-              </div>
-
-              <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
-                <h3 className="text-lg font-semibold text-slate-900">Submission rules</h3>
-                <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-slate-600">
-                  <li>Only report faults for resources you are currently using or responsible for.</li>
-                  <li>Provide a clear location and resource ID.</li>
-                  <li>Keep descriptions accurate so the team can fix the issue faster.</li>
-                </ul>
-              </div>
-
-              <Button type="submit" className="!w-fit !rounded-3xl !px-8 !py-3 !text-white" buttonText="Submit Fault Report" />
-            </div>
-
-            <aside className="space-y-6">
-              <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5 shadow-sm">
-                <h2 className="text-xl font-semibold text-slate-900">Quick Reference</h2>
-                <dl className="mt-4 space-y-4 text-sm text-slate-600">
-                  <div>
-                    <dt className="font-semibold text-slate-800">Actor</dt>
-                    <dd>Student or Campus Staff</dd>
-                  </div>
-                  <div>
-                    <dt className="font-semibold text-slate-800">Precondition</dt>
-                    <dd>User is logged in and has identified a faulty resource.</dd>
-                  </div>
-                  <div>
-                    <dt className="font-semibold text-slate-800">Postcondition</dt>
-                    <dd>Fault report is logged and resource manager is notified.</dd>
-                  </div>
-                </dl>
-              </div>
-
-              <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5 shadow-sm">
-                <h2 className="text-xl font-semibold text-slate-900">Recent Fault Reports</h2>
-                <div className="mt-4 space-y-4">
-                  {reports.map((item) => (
-                    <div key={item.id} className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
-                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                        <div>
-                          <h3 className="font-semibold text-slate-900">{item.resourceId}</h3>
-                          <p className="text-sm text-slate-600">{item.location}</p>
-                        </div>
-                        <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">{item.status}</span>
-                      </div>
-                      <p className="mt-3 text-sm text-slate-700">{item.description}</p>
-                      <p className="mt-2 text-xs text-slate-500">Submitted: {item.createdAt}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </aside>
-          </form>
+      {/* Bottom Navigation */}
+      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 drop-shadow-2xl">
+        <div className="w-fit bg-gray-300 rounded-full px-6 py-3 flex justify-center gap-8">
+          <button className="flex flex-col items-center gap-1 text-gray-700 hover:text-black">
+            <MdHome size={24} />
+            <span className="text-sm font-medium">Home</span>
+          </button>
+          <button className="flex flex-col items-center gap-1 text-gray-700 hover:text-black">
+            <MdCalendarMonth size={24} />
+            <span className="text-sm font-medium">Booking</span>
+          </button>
+          <button className="flex flex-col items-center gap-1 text-gray-700 hover:text-black">
+            <MdPerson size={24} />
+            <span className="text-sm font-medium">Profile</span>
+          </button>
         </div>
       </div>
     </div>
