@@ -18,6 +18,8 @@ export default function Profile({ setActiveSection, initialTab = "bookings" }: P
     const [currentTab, setCurrentTab] = useState<"bookings" | "reports">(initialTab);
     const [myBooking, setMyBooking] = useState<Booking[]>([]);
     const [myReports, setMyReports] = useState<MaintenanceRequest[]>([]);
+    const [upcomingIndex, setUpcomingIndex] = useState(0);
+    const [pastIndex, setPastIndex] = useState(0);
     const { user: userProfile, isLoading: isUserLoading } = useUser();
 
     useEffect(() => {
@@ -107,13 +109,33 @@ export default function Profile({ setActiveSection, initialTab = "bookings" }: P
                             {upcomingEvents.length === 0 ? (
                                 <p className="text-gray-600">You have no upcoming bookings.</p>
                             ) : (
-                                upcomingEvents.map((booking) => (
-                                    <BookingCard 
-                                        key={booking.booking_id}
-                                        booking={booking}
-                                        roomImage="/path/to/room-image.jpg"
-                                />
-                            )))}
+                                <div className="relative">
+                                    <BookingCard
+                                        key={upcomingEvents[upcomingIndex].booking_id}
+                                        booking={upcomingEvents[upcomingIndex]}
+                                        roomImage={upcomingEvents[upcomingIndex].resource.resource_img_url || "/path/to/room-image.jpg"}
+                                    />
+                                    {upcomingEvents.length > 1 && (
+                                        <>
+                                            <button
+                                                onClick={() => setUpcomingIndex(prev => (prev - 1 + upcomingEvents.length) % upcomingEvents.length)}
+                                                className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 text-white p-2 rounded-full hover:bg-black/60 transition-colors focus:outline-none"
+                                            >
+                                                &lt;
+                                            </button>
+                                            <button
+                                                onClick={() => setUpcomingIndex(prev => (prev + 1) % upcomingEvents.length)}
+                                                className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 text-white p-2 rounded-full hover:bg-black/60 transition-colors focus:outline-none"
+                                            >
+                                                &gt;
+                                            </button>
+                                            <div className="text-center mt-2 text-sm text-gray-500 font-semibold">
+                                                {upcomingIndex + 1} / {upcomingEvents.length}
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     </div>
                     <div className="bg-background/20 z-50 backdrop-blur-md p-4 rounded-3xl shadow-md">
@@ -122,13 +144,33 @@ export default function Profile({ setActiveSection, initialTab = "bookings" }: P
                             {pastEvents.length === 0 ? (
                                 <p className="text-gray-600">You have no past bookings.</p>
                             ) : (
-                                pastEvents.map((booking) => (
-                                    <BookingCard 
-                                        key={booking.booking_id}
-                                        booking={booking}
-                                        roomImage="/path/to/room-image.jpg"
+                                <div className="relative">
+                                    <BookingCard
+                                        key={pastEvents[pastIndex].booking_id}
+                                        booking={pastEvents[pastIndex]}
+                                        roomImage={pastEvents[pastIndex].resource.resource_img_url || "/path/to/room-image.jpg"}
                                     />
-                            )))}
+                                    {pastEvents.length > 1 && (
+                                        <>
+                                            <button
+                                                onClick={() => setPastIndex(prev => (prev - 1 + pastEvents.length) % pastEvents.length)}
+                                                className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 text-white p-2 rounded-full hover:bg-black/60 transition-colors focus:outline-none"
+                                            >
+                                                &lt;
+                                            </button>
+                                            <button
+                                                onClick={() => setPastIndex(prev => (prev + 1) % pastEvents.length)}
+                                                className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 text-white p-2 rounded-full hover:bg-black/60 transition-colors focus:outline-none"
+                                            >
+                                                &gt;
+                                            </button>
+                                            <div className="text-center mt-2 text-sm text-gray-500 font-semibold">
+                                                {pastIndex + 1} / {pastEvents.length}
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </>

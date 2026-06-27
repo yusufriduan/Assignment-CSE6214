@@ -2,20 +2,65 @@
 
 import { adminDb } from "@/lib/DatabaseInitializer";
 import { Booking, Resource, User } from "@/types";
-import { Timestamp } from "firebase-admin/firestore";
+import { Timestamp, DocumentReference } from "firebase-admin/firestore";
 import { cleanFirestoreData } from "@/lib/utils";
 import { transporter } from "@/lib/EmailInitializer";
 
 export async function getStudentBookings(userId: string): Promise<Booking[]> {
     try {
+        console.log(`[BookingController] Fetching bookings for user: ${userId}`);
+        const userRef = adminDb.collection('Users').doc(userId);
         const snapshot = await adminDb.collection('Bookings')
-            .where('booking_owner', '==', userId)
+            .where('booking_owner', '==', userRef)
             .get();
 
-        return snapshot.docs.map(doc => ({
-            booking_id: doc.id,
-            ...cleanFirestoreData(doc.data()),
-        })) as Booking[];
+        if (snapshot.empty) {
+            console.log(`[BookingController] No bookings found for user: ${userId}`);
+            return [];
+        }
+
+        const bookingList:Booking[] = [];
+        for (const doc of snapshot.docs) {
+            const data = doc.data();
+            if (data) {
+                const ownerSnap = await (data.booking_owner as DocumentReference).get();
+                const ownerData = ownerSnap.data();
+
+                const resourceRef = data.resource as DocumentReference;
+                const resourceSnap = await resourceRef.get();
+                const resourceData = resourceSnap.data();
+
+                if (ownerData && resourceData) {
+                    const owner: User = {
+                        user_id: ownerSnap.id,
+                        ...cleanFirestoreData(ownerData),
+                    } as User;
+
+                    const resource: Resource = {
+                        resource_id: resourceSnap.id,
+                        resource_name: resourceData.resource_name,
+                        resource_dept: resourceData.resource_dept,
+                        resource_img_url: resourceData.resource_img_url,
+                        resource_status: resourceData.status,
+                        resource_equipments: resourceData.resource_equipments
+                    };
+
+                    bookingList.push({
+                        booking_id: doc.id,
+                        booking_owner: owner,
+                        resource: resource,
+                        booking_start: (data.booking_start as Timestamp).toDate(),
+                        booking_end: (data.booking_end as Timestamp).toDate(),
+                        booking_status: data.booking_status,
+                        booking_reason: data.booking_reason,
+                        request_created_at: (data.request_created_at as Timestamp).toDate(),
+                        prev_booking: data.prev_booking
+                    });
+                }
+            }
+        }
+        console.log(`[BookingController] Found ${bookingList.length} bookings for user: ${userId}`);
+        return bookingList;
     } catch (error) {
         console.error("Error fetching student bookings:", error);
         return [];

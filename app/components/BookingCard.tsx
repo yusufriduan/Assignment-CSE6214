@@ -19,8 +19,8 @@ export default function BookingCard({ booking, roomImage }: BookingCardProps) {
                     <p className="text-sm text-gray-600">Date: {booking.booking_start.toLocaleDateString()} | Time: {booking.booking_start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                     <p className="text-sm text-gray-600">Status: {booking.booking_status}</p>
                     <div className="flex flex-row justify-end mt-2">
-                        <Button className="!w-fit !rounded-3xl !text-white !py-2 !px-4 rounded-md !hover:bg-blue-600 !transition-colors" buttonText="View Details" />
-                        <Button className="!w-fit !rounded-3xl !text-white !py-2 !px-4 rounded-md !hover:bg-red-600 !transition-colors ml-2" buttonText="Report Fault" onClick={() => {router.push(`/faulty-report/${booking.resource}`)}} />
+                        <Button className="!w-fit !rounded-3xl rounded-md !hover:bg-blue-600 !transition-colors" buttonText="View Details" onClick={() => {router.push(`/booking_details/${booking.booking_id}`)}}/>
+                        <Button className="!w-fit !rounded-3xl rounded-md !hover:bg-red-600 !transition-colors ml-2" buttonText="Report Fault" onClick={() => {router.push(`/faulty-report/${booking.resource.resource_id}`)}} />
                     </div>
                 </div>
             </div>
