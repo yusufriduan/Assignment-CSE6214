@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useSession } from "next-auth/react";
 import { User } from '@/types';
 import { getUserProfile } from '@/app/actions/userActions';
 
@@ -14,10 +15,12 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 export function UserProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const { data: session, status } = useSession();
 
     useEffect(() => {
         const fetchUser = async () => {
-            const userId = localStorage.getItem("user_id");
+            const userId = (session?.user as User | undefined)?.user_id;
+
             if (userId) {
                 try {
                     const userProfile = await getUserProfile(userId);
@@ -30,7 +33,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         };
 
         fetchUser();
-    }, []);
+    }, [session, status]);
 
     return (
         <UserContext.Provider value={{ user, isLoading }}>

@@ -19,6 +19,19 @@ export default function HomeDashboard({ setActiveSection }: HomeProps) {
     });
     const [isLoading, setIsLoading] = useState(true);
 
+    const getGreeting = () => {
+        const currentHour = new Date().getHours();
+        if (currentHour < 12)
+            return "Good morning";
+         else if (currentHour < 18)
+            return "Good afternoon";
+         else if (currentHour < 21)
+            return "Good evening";
+         else
+            return "Good night";
+        
+    };
+
     useEffect(() => {
         async function fetchSummary() {
             if (!isUserLoading && user?.user_id) {
@@ -66,7 +79,7 @@ export default function HomeDashboard({ setActiveSection }: HomeProps) {
         <div className="p-6 h-full w-full max-w-lg mx-auto">
             <header className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold mb-4">
-                    {isUserLoading ? 'Loading...' : `Hi, ${user?.name?.split(' ')[0] || 'User'}!`}
+                    {isUserLoading ? 'Loading...' : `${getGreeting()}, ${user?.name?.split(' ')[0] || 'User'}!`}
                 </h1>
                 <Button className="!w-10 !h-10 !p-2" buttonText="🔔" onClick={() => {router.push('/notification')}} />
             </header>

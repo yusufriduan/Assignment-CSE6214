@@ -21,7 +21,7 @@ export default function NavBar({ items, activeSection, onSectionChange }: NavBar
                     className={`flex flex-col items-center gap-3 p-3 rounded-2xl cursor-pointer transition-colors duration-200 ${activeSection === item.id ? "bg-[#C0C0C0] shadow-md2" : "hover:bg-[#C0C0C0]/50"}`}
                     onClick={() => onSectionChange(item.id)}
                 >
-                    <item.icon size={20} />
+                    <item.icon size={35} />
                     <span className="text-sm font-medium">{item.label}</span>
                 </div>
             ))}

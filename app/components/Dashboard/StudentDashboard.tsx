@@ -15,6 +15,15 @@ interface StudentDashboardProp {
     default_sect: string | null
 }
 
+interface BookingData {
+    userId: string;
+    fullName: string;
+    email: string;
+    bookingStart: Date;
+    bookingEnd: Date;
+    bookingPurpose: string;
+}
+
 export default function Student({ default_sect }: StudentDashboardProp) {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -27,6 +36,7 @@ export default function Student({ default_sect }: StudentDashboardProp) {
     };
 
     const [activeSection, setActiveSection] = useState(getStartingSection());
+    const [bookingData, setBookingData] = useState<BookingData | null>(null);
 
     useEffect(() => {
         if (tabParam === "reports") setActiveSection("profile-reports");
@@ -54,9 +64,9 @@ export default function Student({ default_sect }: StudentDashboardProp) {
             case "home":
                 return <HomeDashboard setActiveSection={setActiveSection} />;
             case "booking":
-                return <PreBooking setActiveSection={setActiveSection} />;
+                return <PreBooking setActiveSection={setActiveSection} setBookingData={setBookingData} />;
             case "venue-booking":
-                return <VenueBooking setActiveSection={setActiveSection} />;
+                return <VenueBooking setActiveSection={setActiveSection} bookingData={bookingData} />;
             case "profile":
                 return <Profile setActiveSection={setActiveSection} initialTab="bookings" />;
             case "edit-profile":

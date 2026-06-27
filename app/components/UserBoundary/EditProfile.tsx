@@ -14,6 +14,7 @@ export default function EditProfile({ setActiveSection }: EditProfileProps) {
     const [userId, setUserId] = useState("");
     const { user, isLoading: isUserLoading } = useUser();
     const [twoFAEnabled, setTwoFAEnabled] = useState(false);
+    const [saveMessage, setSaveMessage] = useState("");
     const [formData, setFormData] = useState({
         fullName: "",
         email: "",
@@ -23,6 +24,24 @@ export default function EditProfile({ setActiveSection }: EditProfileProps) {
         confirmPassword: ""
     });
     const [isSaving, setIsSaving] = useState(false);
+
+    const handleTwoFAToggle = async (state: boolean) => {
+        setTwoFAEnabled(state);
+
+        if (!userId) {
+            return;
+        }
+
+        try {
+            await updateUserProfile(userId, {
+                two_factor_enabled: state,
+            });
+            setSaveMessage(state ? "Two-factor authentication enabled." : "Two-factor authentication disabled.");
+        } catch (error) {
+            console.error("Error updating two-factor setting", error);
+            setSaveMessage("Failed to update two-factor authentication.");
+        }
+    };
 
     useEffect(() => {
         if (user) {
@@ -44,6 +63,7 @@ export default function EditProfile({ setActiveSection }: EditProfileProps) {
         if (!userId) return;
 
         setIsSaving(true);
+        setSaveMessage("");
         try {
             await updateUserProfile(userId, {
                 name: formData.fullName,
@@ -52,7 +72,7 @@ export default function EditProfile({ setActiveSection }: EditProfileProps) {
                 two_factor_enabled: twoFAEnabled
             });
             alert("Profile successfully updated!");
-            setActiveSection("profile");
+            setSaveMessage("Profile updated successfully.");
         } catch (error) {
             console.error("Error updating profile", error);
             alert("Failed to update profile.");
@@ -67,9 +87,10 @@ export default function EditProfile({ setActiveSection }: EditProfileProps) {
                 <div>
                     <h1 className="text-2xl font-bold">Edit Profile</h1>
                     <p className="text-sm text-gray-600">Update your personal information.</p>
+                    {saveMessage ? <p className="mt-2 text-sm text-green-700">{saveMessage}</p> : null}
                 </div>
             </header>
-            <form className="mt-6 flex flex-col items-center gap-8">
+            <form className="mt-6 flex flex-col items-center gap-8" onSubmit={handleSubmit}>
                 <div className="flex flex-row gap-4 items-center w-full bg-secondary/20 z-50 backdrop-blur-md p-4 rounded-3xl shadow-md">
                     <MdPerson className="text-4xl p-1 rounded-full w-10" />
                     <Input 
@@ -116,8 +137,7 @@ export default function EditProfile({ setActiveSection }: EditProfileProps) {
                             key="currentPassword" 
                             label="Current Password" 
                             type="password" 
-                            placeholder="Current Password" 
-                            required 
+                            placeholder="Current Password"  
                             value={formData.currentPassword}
                             onChange={(e) => setFormData({...formData, currentPassword: e.target.value})}
                         />
@@ -128,8 +148,7 @@ export default function EditProfile({ setActiveSection }: EditProfileProps) {
                             key="newPassword" 
                             label="New Password" 
                             type="password" 
-                            placeholder="New Password" 
-                            required 
+                            placeholder="New Password"  
                             value={formData.newPassword}
                             onChange={(e) => setFormData({...formData, newPassword: e.target.value})}
                         />
@@ -140,8 +159,7 @@ export default function EditProfile({ setActiveSection }: EditProfileProps) {
                             key="confirmPassword" 
                             label="Confirm New Password" 
                             type="password" 
-                            placeholder="Confirm New Password" 
-                            required 
+                            placeholder="Confirm New Password"  
                             value={formData.confirmPassword}
                             onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
                         />
@@ -151,17 +169,16 @@ export default function EditProfile({ setActiveSection }: EditProfileProps) {
                             <MdOutlineMail className="text-5xl text-foreground" />
                             <MdPassword className="absolute top-0 right-0 w-7.5 bg-black rounded text-white p-0.5 translate-x-1 -translate-y-1" />
                         </div>
-                        <Toggle label="Two Factor Authentication" initial={false} onToggle={(state) => {
-                            const passwordFields = document.querySelectorAll<HTMLInputElement>('input[type="password"]');
-                            passwordFields.forEach(field => {
-                                field.type = state ? 'text' : 'password';
-                            });
-                        }} />
+                        <Toggle
+                            label="Two Factor Authentication"
+                            initial={twoFAEnabled}
+                            onToggle={handleTwoFAToggle}
+                        />
                     </div>
                 </div>
                 <div className="flex flex-row gap-4 w-full justify-center">
-                    <Button type="reset" className="!w-fit !rounded-3xl !text-white !py-3 !px-5 rounded-md !hover:bg-blue-600 !transition-colors" buttonText="Cancel" onClick={() => setActiveSection("profile")} />
-                    <Button type="submit" className="!w-fit !rounded-3xl !text-white !py-3 !px-5 rounded-md !hover:bg-blue-600 !transition-colors" buttonText="Save Changes" />
+                    <Button type="reset" className="!w-fit !rounded-3xl !py-3 !px-5 rounded-md !hover:bg-blue-600 !transition-colors" buttonText="Cancel" onClick={() => setActiveSection("profile")} />
+                    <Button type="submit" className="!w-fit !rounded-3xl !py-3 !px-5 rounded-md !hover:bg-blue-600 !transition-colors" buttonText={isSaving ? "Saving..." : "Save Changes"} disabled={isSaving} />
                 </div>
             </form>
         </div>

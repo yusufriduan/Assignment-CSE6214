@@ -1,5 +1,5 @@
 "use client";
-import Login from "../app/login/page";
+import Login from "@/app/login/page";
 import { redirect } from "next/navigation";
 
 export default function page() {

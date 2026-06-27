@@ -44,7 +44,6 @@ export async function registerUser(newUserParams: {
 
 export async function loginUser(user_id: string, password: string) {
     try {
-        console.log('Private Key:', process.env.private_key); // Debugging line
         const userRef = adminDb.collection('Users').doc(user_id);
         const userSnapshot = await userRef.get();
 
@@ -59,7 +58,9 @@ export async function loginUser(user_id: string, password: string) {
             throw new Error('Incorrect password');
         }
 
-        return { success: true, message: 'Login successful', user: userData };
+        const { password: _password, ...safeUser } = userData;
+
+        return { success: true, message: 'Login successful', user: safeUser as User };
     } catch (error) {
         console.error('Error logging in:', error);
         return { success: false, message: error instanceof Error ? error.message : 'Unknown error' };

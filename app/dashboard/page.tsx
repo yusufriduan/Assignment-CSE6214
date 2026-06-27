@@ -1,4 +1,4 @@
-import { BookingListUI } from "../components/BookingListUI";
+import { auth } from "@/auth";
 import Student from "../components/Dashboard/StudentDashboard";
 import ResourceManager from "../components/Dashboard/ResourceManagerDashboard";
 
@@ -8,10 +8,14 @@ interface PageProps {
 
 export default async function Dashboard({ searchParams }: PageProps) {
 
+  const session = await auth();
+  if (!session) {
+    return <div className="p-10 text-center text-red-500 font-bold">Unauthorized: Please log in to access the dashboard.</div>;
+  }
+
+  const userRole = session.user?.role?.toLowerCase() || null;
   const resolvedSearchParams = await searchParams;
   const default_sect = resolvedSearchParams.default_sect || null;
-
-  const userRole = 'resourcemanager';
 
   if (userRole === "student") {
     return <Student default_sect={default_sect} />;
