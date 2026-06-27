@@ -134,7 +134,7 @@ export async function fetchAllBooking(){
     }
 }
 
-export async function approveBooking(bookingId: string, email: string){
+export async function approveBooking(bookingId: string, email: string, name: string, resource: string){
     try{
         const bookingRef = await adminDb.collection('Bookings').doc(bookingId);
         await bookingRef.update({
@@ -142,6 +142,32 @@ export async function approveBooking(bookingId: string, email: string){
         })
 
         // send email
+        const mailOptions = {
+            from: `Campus Resource Booking System <${process.env.SMTP_FROM_EMAIL}>`,
+            to: email,
+            subject: 'Booking Request Approval Notification',
+            text: `Hello ${name},
+
+            We are pleased to your booking request for ${resource} has been approved! Please do not forget to check in
+            at least 24 hours before your booking starts to avoid it from being cancelled.
+
+            If you wish to contact us, feel free to reply to this email and a staff member will get back to you soon.`,
+            html: `
+            <div style="font-family: sans-serif; text-align: center;">
+                <h1>Hello ${name},</h1>
+                <p>]
+                    We are pleased to your booking request for <b>${resource}</b> has been approved! Please do not forget to check in
+                    at least 24 hours before your booking starts to avoid it from being cancelled.
+                </p>
+                
+                <p>If you wish to contact us, feel free to reply to this email and a staff will get to you soon.</p>
+                <br>
+                <img src="https://tqhyjalqieggxdxrmetq.supabase.co/storage/v1/object/public/profile_pictures/absolutecinema.png" alt="crbs-pic" width="150"></img>
+            </div>
+            `,
+        };
+
+        await transporter.sendMail(mailOptions);
 
         return {success: true}
     } catch (error){
@@ -171,7 +197,7 @@ export async function rejectBooking(bookingId: string, email: string, reason: st
             html: `
             <div style="font-family: sans-serif; text-align: center;">
                 <h1>Hello ${name},</h1>
-                <p>We regret to inform you that your booking request for ${resource} has been rejected for the following reasons:</p>
+                <p>We regret to inform you that your booking request for <b>${resource}</b> has been rejected for the following reasons:</p>
                 <b>${reason}</b>
                 
                 <p>If you wish to contact us regarding the decision, feel free to reply to this email and a staff will get to you soon.</p>
@@ -182,9 +208,7 @@ export async function rejectBooking(bookingId: string, email: string, reason: st
             `,
         };
 
-        const info = await transporter.sendMail(mailOptions);
-        
-        console.log('Email sent successfully! Message ID:', info.messageId);
+        await transporter.sendMail(mailOptions);
 
         return {success: true}
     } catch (error){

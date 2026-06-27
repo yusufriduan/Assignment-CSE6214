@@ -7,7 +7,7 @@ export default function ReportCard({ request, hidden }: { request: MaintenanceRe
 
     const statusColor = 
         request.status === "Pending" ? "bg-yellow-100 text-yellow-800" :
-        request.status === "Resolved" ? "bg-green-100 text-green-800" :
+        request.status === "Complete" ? "bg-green-100 text-green-800" :
         "bg-gray-100 text-gray-800";
 
     const [formattedDate, setFormattedDate] = useState<string>('');
@@ -31,7 +31,7 @@ export default function ReportCard({ request, hidden }: { request: MaintenanceRe
     return (
         <div hidden={hidden} onClick={() => onClickHandler(request.fault_id)} className="cursor-pointer flex flex-col gap-1 w-full p-4 bg-background/50 backdrop-blur-md rounded-xl border border-white/20 shadow-sm transition-all hover:shadow-md">
             <div className="flex justify-between items-start mb-2">
-                <h1 className="text-lg font-bold text-gray-900">{request.fault_detail}</h1>
+                <h1 className="text-lg font-bold text-gray-900">{request.fault_title}</h1>
                 <span className={`text-xs font-bold px-3 py-1 rounded-full ${statusColor}`}>
                     {request.status}
                 </span>

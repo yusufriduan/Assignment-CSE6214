@@ -32,7 +32,7 @@ export function MaintenanceRequestList(){
     }, [])
 
     return(
-        <div>
+        <div className="max-w-full min-h-screen">
             <FilterButtons onClickHandler={setSelectedDept}/>
             <div className="flex flex-col gap-3 w-full mt-4">
                 <h1>Pending Reports</h1>

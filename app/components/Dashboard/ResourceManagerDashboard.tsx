@@ -8,12 +8,13 @@ import { BookingListUI } from "../BookingListUI";
 import { ResourceUI } from "../ResourceUI";
 import { AnalyticsUI } from "../AnalyticsUI";
 import { MaintenanceUI } from "../MaintenanceUI";
+import Button from "../Button";
 
-interface StudentDashboardProp {
+interface ResourceManagerDashboardProp {
     default_sect: string | null
 }
 
-export default function Student({ default_sect }: StudentDashboardProp) {
+export default function ResourceManager({ default_sect }: ResourceManagerDashboardProp) {
     const router = useRouter();
 
     const [activeSection, setActiveSection] = useState("manage-booking");
@@ -32,7 +33,20 @@ export default function Student({ default_sect }: StudentDashboardProp) {
     const renderContent = () => {
         switch (activeSection) {
             case "manage-booking":
-                return <BookingListUI pageType="list" />;
+                return (
+                    <div className="p-6 min-h-screen w-full max-w-lg mx-auto">
+                        <header className="flex justify-between mb-6">
+                            <div>
+                                <h1 className="text-2xl font-bold mb-4">Hi, John!</h1>
+                                <p>Manage Pending Bookings</p>
+                            </div>
+                            
+                            <Button className="!w-10 !h-10 !p-2" buttonText="🔔" />
+                        </header>
+                        <BookingListUI pageType="list" />
+                    </div>
+                    
+                );
             case "manage-resources":
                 return <ResourceUI pageType="list" />;
             case "analytics":

@@ -2,7 +2,7 @@ import { defaultPfp } from "../constants";
 import Button from "./Button";
 import { DEPARTMENTS } from "../constants";
 import { useRef, useState } from "react";
-import { rejectBooking } from "../actions/BookingController";
+import { approveBooking, rejectBooking } from "../actions/BookingController";
 
 interface BookingRequestCardProp extends React.HTMLAttributes<HTMLDivElement>{
     booking_id: string;
@@ -33,6 +33,25 @@ export default function BookingRequestCard({booking_id, booking_status, userProf
             approveBtn.current.hidden = true;
             rejectBtn.current.hidden = true;
             rejectReasonRef.current.hidden = false;
+        }
+    }
+
+    async function handleApprove(event: React.MouseEvent<HTMLButtonElement>){
+        event.preventDefault();
+        if(approveBtn && approveBtn.current && rejectBtn && rejectBtn.current){
+            approveBtn.current.disabled = true;
+            rejectBtn.current.disabled = true;
+        }
+        const success = await approveBooking(booking_id, userEmail, userName, resourceName);
+        if(success.success){
+            alert(`Successfully approved booking for resource ${resourceName} by ${userName}`);
+            if(thisRef && thisRef.current){
+                thisRef.current.hidden = true;
+            }
+        } else if (success.error) {
+            alert(`Failed to approve booking for resource ${resourceName} by ${userName}`);
+        } else {
+            alert('Internal Server Error');
         }
     }
 
@@ -86,7 +105,7 @@ export default function BookingRequestCard({booking_id, booking_status, userProf
                         <button onClick={(e) => onSubmit(e)} className="ml-2 bg-accent p-2 rounded-lg cursor-pointer disabled:cursor-not-allowed disabled:bg-accent disabled:text-gray-700">Submit</button>
                     </div>
                     
-                    <button ref={approveBtn} className="bg-green-400 w-32 h-8 rounded-2xl mr-1 cursor-pointer active:scale-95 active:bg-green-600">Approve</button>
+                    <button ref={approveBtn} onClick={(e) => handleApprove(e)} className="bg-green-400 w-32 h-8 rounded-2xl mr-1 cursor-pointer active:scale-95 active:bg-green-600">Approve</button>
                     <button ref={rejectBtn} onClick={handleReject} className="bg-red-400 w-32 h-8 rounded-2xl ml-1 cursor-pointer active:scale-95 active:bg-red-500">Reject</button>
                 </div>
                 :

@@ -14,7 +14,8 @@ export function BookingRequestList(){
     useEffect(() => {
         async function getBookingList(){
             const bookings = await fetchAllBooking();
-            setBookingList(bookings);
+            const pending = bookings.filter(booking => booking.booking_status === "Awaiting Approval");
+            setBookingList(pending);
         }
 
         getBookingList();
@@ -30,17 +31,33 @@ export function BookingRequestList(){
                     <p>Loading</p>
                 </div>
                 :
-                <div className="w-full overflow-hidden flex justify-center flex-col items-center">
-                    {
-                        bookingList ? 
-                        bookingList.map((booking, index) => {
-                            return (
-                                <BookingRequestCard key={index} hidden={selectedDept !== "All" && selectedDept !== booking.resource.resource_dept} booking_id={booking.booking_id} booking_status={booking.booking_status} userName={booking.booking_owner.name} userRole={booking.booking_owner.role} resourceDepartment={booking.resource.resource_dept} resourceName={booking.resource.resource_name} userEmail={booking.booking_owner.email}/>
-                            )
-                        })
-                        :
-                        <p>No Bookings</p>
-                    }
+                <div className="w-full overflow-hidden flex justify-center flex-col items-center mt-4">
+                    {(() => {
+                        // filter the list based on status and department first
+                        const filteredBookings = (bookingList || []).filter(booking => {
+                            const matchesStatus = booking.booking_status === "Awaiting Approval";
+                            const matchesDept = selectedDept === "All" || selectedDept === booking.resource.resource_dept;
+                            return matchesStatus && matchesDept;
+                        });
+
+                        // render based on whether the filtered list has items
+                        return filteredBookings.length > 0 ? (
+                            filteredBookings.map((booking: Booking, index) => (
+                                <BookingRequestCard 
+                                    key={booking.booking_id || index} // Best practice: use unique ID instead of index if possible
+                                    booking_id={booking.booking_id} 
+                                    booking_status={booking.booking_status} 
+                                    userName={booking.booking_owner.name} 
+                                    userRole={booking.booking_owner.role} 
+                                    resourceDepartment={booking.resource.resource_dept} 
+                                    resourceName={booking.resource.resource_name} 
+                                    userEmail={booking.booking_owner.email}
+                                />
+                            ))
+                        ) : (
+                            <p>No Bookings</p>
+                        );
+                    })()}
                 </div>
             }
         </div>

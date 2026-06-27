@@ -36,14 +36,17 @@ export interface Booking {
 
 export interface MaintenanceRequest{
     fault_id: string;
+    fault_title: string;
     request_author: string;
+    request_author_email: string;
+    faulty_resource_ref: string,
     faulty_resource_name: string;
     faulty_resource_dept: string;
     fault_detail: string;
     proof_url: string;
-    status: string;
+    status: "Pending" | "Scheduled" | "Complete";
     request_date: Date;
-    scheduledServiceDate: Date;
+    scheduledServiceDate: Date | null;
 }
 
 export interface Notification {
