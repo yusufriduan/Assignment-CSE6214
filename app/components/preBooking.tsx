@@ -50,7 +50,7 @@ export default function preBooking({ setActiveSection }: PreBookingProps) {
                 <Input key="start-booking" label="Booking Date" type="datetime-local" placeholder="Booking Date" required />
                 <Input key="end-booking" label="End Booking Date" type="datetime-local" placeholder="End Booking Date" required />
                 <Input key="booking-purpose" label="Booking Purpose" type="text" placeholder="Booking Purpose" required />
-                <Button type="submit" className="!w-fit !rounded-3xl !text-white !py-3 !px-5 rounded-md !hover:bg-blue-600 !transition-colors" buttonText="+   Add Room" onClick={() => setActiveSection('venue-booking')} />
+                <Button type="submit" className="!w-fit !rounded-3xl !py-3 !px-5 rounded-md !hover:bg-blue-600 !transition-colors" buttonText="+   Add Room" onClick={() => setActiveSection('venue-booking')} />
             </form>
         </div>
     );

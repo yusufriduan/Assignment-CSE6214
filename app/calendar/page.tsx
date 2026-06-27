@@ -1,40 +1,35 @@
 "use client";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Button from "@/app/components/Button";
 import BackButton from "../components/BackButton";
+import { useUser, UserProvider } from "../components/UserBoundary/UserContext";
+import { getStudentBookings } from "../actions/BookingController";
+import { Booking } from "@/types";
 
-export default function CalendarPage(){
+function CalendarView() {
     const router = useRouter();
-    const mockEvents = [
-        {
-            id: 1,
-            title: 'Ideabox 1',
-            timeframe: '06/06/2026, 13:00 - 15:00',
-            color: 'bg-[#a3f870]', // Light green
-            eventDates: [6], 
-        },
-        {
-            id: 2,
-            title: 'CQAR 3025 - FAIE',
-            timeframe: '17/06/2026 - 19/06/2026',
-            color: 'bg-[#f6d765]', // Yellow
-            eventDates: [17, 18, 19],
-        },
-        {
-            id: 3,
-            title: 'CQAR 2007 - FCI',
-            timeframe: '24/06/2026, 11:00 - 13:00',
-            color: 'bg-[#ff7b72]', // Red
-            eventDates: [24],
-        },
-        {
-            id: 4,
-            title: 'CQAR 2007 - FCI',
-            timeframe: '30/06/2026, 11:00 - 13:00',
-            color: 'bg-[#ff7b72]', // Red
-            eventDates: [30],
-        },
-    ];
+    const { user, isLoading: isUserLoading } = useUser();
+    const [myBookings, setMyBookings] = useState<Booking[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchBookings = async () => {
+            if (!isUserLoading && user?.user_id) {
+                try {
+                    const bookings = await getStudentBookings(user.user_id);
+                    setMyBookings(bookings);
+                } catch (error) {
+                    console.error("Failed to fetch bookings:", error);
+                } finally {
+                    setIsLoading(false);
+                }
+            } else if (!isUserLoading && !user) {
+                setIsLoading(false);
+            }
+        };
+
+        fetchBookings();
+    }, [user, isUserLoading]);
 
     function ShowMonth() {
         const dates = new Date();
@@ -43,14 +38,25 @@ export default function CalendarPage(){
         return `${month} ${year}`;
     }
 
-    const today = new Date().getDate();
-    const daysInCurrentMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
+    const today = new Date();
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+    const todayDate = today.getDate();
+    const daysInCurrentMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
     const daysInMonth = Array.from({ length: daysInCurrentMonth }, (_, i) => i + 1);
     const daysOfWeek = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
     const hasEvent = (day: number) => {
-        return mockEvents.some((event) => event.eventDates.includes(day));
+        return myBookings.some((event) => {
+            const eventDate = new Date(event.booking_start);
+            return eventDate.getFullYear() === currentYear && eventDate.getMonth() === currentMonth && eventDate.getDate() === day;
+        });
     };
+
+    const eventsThisMonth = myBookings.filter(event => {
+        const eventDate = new Date(event.booking_start);
+        return eventDate.getFullYear() === currentYear && eventDate.getMonth() === currentMonth;
+    }).sort((a, b) => a.booking_start.getTime() - b.booking_start.getTime());
 
     return(
         <div className="p-6 h-full w-full max-w-lg mx-auto flex flex-col">
@@ -66,7 +72,7 @@ export default function CalendarPage(){
                         </div>
                         ))}
                         {daysInMonth.map((day) => {
-                            const isToday = day === today;
+                            const isToday = day === todayDate;
                             return (
                                 <div 
                                     key={`day-${day}`} 
@@ -85,19 +91,45 @@ export default function CalendarPage(){
                     <div className="flex flex-col gap-3 w-full bg-background/20 z-50 backdrop-blur-md p-4 rounded-3xl shadow-md">
                         <h2 className="text-xl font-bold mb-2">Events</h2>
                         <div className="flex flex-col gap-3 max-h-[35vh] overflow-y-auto pr-2">
-                            {mockEvents.map((event) => (
-                                <div
-                                    key={event.id}
-                                    className={`${event.color} rounded-4xl px-6 py-4 shadow-sm shrink-0`}
-                                >
-                                    <h3 className="text-sm font-bold text-black leading-tight">{event.title}</h3>
-                                    <p className="text-xs text-black/80 mt-0.5 leading-tight">{event.timeframe}</p>
-                                </div>
-                            ))}
+                            {isLoading ? (
+                                <p>Loading events...</p>
+                            ) : eventsThisMonth.length > 0 ? (
+                                eventsThisMonth.map((booking) => {
+                                    const timeframe = `${booking.booking_start.toLocaleDateString([], {day: '2-digit', month: '2-digit', year: 'numeric'})}, ${booking.booking_start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - ${booking.booking_end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+                                    
+                                    const statusColor = 
+                                        booking.booking_status === "Booked" ? "bg-green-400" :
+                                        booking.booking_status === "Awaiting Approval" ? "bg-yellow-400" :
+                                        booking.booking_status === "Rejected" ? "bg-red-400" :
+                                        booking.booking_status === "Check-in" ? "bg-blue-400" :
+                                        "bg-gray-200";
+
+                                    return (
+                                        <div
+                                            key={booking.booking_id}
+                                            className={`${statusColor} rounded-2xl px-5 py-4 shadow-sm shrink-0 cursor-pointer`}
+                                            onClick={() => router.push(`/dashboard?tab=bookings`)}
+                                        >
+                                            <h3 className="text-sm font-bold text-black leading-tight">{booking.resource.resource_name}</h3>
+                                            <p className="text-xs text-black/80 mt-0.5 leading-tight">{timeframe}</p>
+                                        </div>
+                                    );
+                                })
+                            ) : (
+                                <p className="text-center text-gray-500">No events this month.</p>
+                            )}
                         </div>
                     </div>
                 </div>
             </main>
         </div>
+    );
+}
+
+export default function CalendarPage() {
+    return (
+        <UserProvider>
+            <CalendarView />
+        </UserProvider>
     );
 }
