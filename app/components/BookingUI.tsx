@@ -3,13 +3,13 @@
 import React from "react";
 import { BookingRequestList } from "./BookingRequestList";
 
-interface BookingListUIProps{
-    pageType: "list" | "detail" | "edit";
+interface BookingUIProps{
+    pageType: "list" | "request_list" | "detail" | "edit";
     bookingId?: string;
 }
 
-export class BookingListUI extends React.Component<BookingListUIProps>{
-    public static displayList(){
+export class BookingUI extends React.Component<BookingUIProps>{
+    public static displayRequests(){
         return (
             <div className="p-4 h-full max-w-screen mx-auto">
                 <BookingRequestList />
@@ -23,7 +23,7 @@ export class BookingListUI extends React.Component<BookingListUIProps>{
 
         return (
             <div>
-                {pageType === "list" && BookingListUI.displayList()}
+                {pageType === "request_list" && BookingUI.displayRequests()}
             </div>
         );
     }

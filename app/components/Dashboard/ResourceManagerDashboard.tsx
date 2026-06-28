@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import NavBar, { NavItem } from "../NavBar";
 import { LuCalendarPlus, LuBookPlus } from "react-icons/lu";
 import { MdOutlineMonitorHeart, MdOutlineReportGmailerrorred } from "react-icons/md";
-import { BookingListUI } from "../BookingListUI";
+import { BookingUI } from "../BookingUI";
 import { ResourceUI } from "../ResourceUI";
 import { AnalyticsUI } from "../AnalyticsUI";
 import { MaintenanceUI } from "../MaintenanceUI";
@@ -32,7 +32,7 @@ export default function ResourceManager({ default_sect }: ResourceManagerDashboa
         switch (activeSection) {
             case "manage-booking":
                 return (
-                    <BookingListUI pageType="list" />
+                    <BookingUI pageType="request_list" />
                 );
             case "manage-resources":
                 return <ResourceUI pageType="list" />;
