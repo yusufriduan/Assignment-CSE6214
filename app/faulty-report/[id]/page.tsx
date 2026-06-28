@@ -2,9 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import NavBar, { NavItem } from "@/app/components/NavBar"; // Using @ alias
-import { LuHouse, LuCalendarPlus, LuUsers } from "react-icons/lu";
-import { MdOutlinePerson } from "react-icons/md";
+import { useSession } from "next-auth/react";
+import { MdArrowBack } from "react-icons/md";
 
 interface FaultReport {
   resourceId: string;
@@ -14,12 +13,15 @@ interface FaultReport {
 
 export default function FaultReportPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
+  
   const [form, setForm] = useState<FaultReport>({
     resourceId: "",
     location: "",
     description: "",
   });
   const [images, setImages] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (field: keyof FaultReport, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -33,50 +35,67 @@ export default function FaultReportPage() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Submitting:", form, "Images:", images);
-    alert("Fault report submitted!");
-    setForm({ resourceId: "", location: "", description: "" });
-    setImages([]);
-  };
-
-  const handleNavClick = (section: string) => {
-    if (section === "home") {
-      router.push("/dashboard");
-    } else if (section === "booking") {
-      router.push("/dashboard?tab=booking");
-    } else if (section === "profile") {
+    setIsSubmitting(true);
+    
+    try {
+      console.log("Submitting:", form, "Images:", images);
+      alert("Fault report submitted!");
+      setForm({ resourceId: "", location: "", description: "" });
+      setImages([]);
       router.push("/dashboard?tab=profile");
-    } else if (section === "history") {
-      router.push("/student-faculty-history");
+    } catch (error) {
+      console.error("Error submitting report:", error);
+      alert("Failed to submit report. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const staffNav: NavItem[] = [
-    { id: "home", label: "Home", icon: LuHouse },
-    { id: "booking", label: "Booking", icon: LuCalendarPlus },
-    { id: "history", label: "History", icon: LuUsers },
-    { id: "profile", label: "Profile", icon: MdOutlinePerson },
-  ];
+  const handleBack = () => {
+    router.push("/dashboard?tab=profile");
+  };
+
+  if (status === "loading") {
+    return (
+      <div className="h-full bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
 
   return (
-    <div className="h-full bg-gray-50 flex flex-col overflow-hidden">
+    <div className="h-full bg-gray-50 flex flex-col">
+      {/* Header with Centered Back Button */}
+      <div className="bg-white px-4 py-4 shadow-sm">
+        <div className="max-w-lg mx-auto flex items-center justify-center relative">
+          <button
+            onClick={handleBack}
+            className="absolute left-0 flex items-center space-x-1 text-gray-600 hover:text-gray-900 transition"
+          >
+            <MdArrowBack size={22} />
+          </button>
+          <h1 className="text-base font-semibold text-gray-900">Report a Fault</h1>
+        </div>
+      </div>
+
       {/* Main Content */}
-      <div className="flex-1 overflow-y-auto pb-32">
+      <div className="flex-1 overflow-y-auto pb-8">
         <div className="w-full max-w-lg mx-auto px-4 pt-6">
-          {/* Header Card */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm">
-            <h1 className="text-2xl font-bold text-gray-900">Report a Fault</h1>
-            <p className="mt-1 text-sm text-gray-600">Submit a fault report for campus resources.</p>
+          {/* Description Card */}
+          <div className="bg-white rounded-2xl p-4 shadow-sm mb-4">
+            <p className="text-sm text-gray-600">
+              Submit a fault report for campus resources. Our team will review and address the issue.
+            </p>
           </div>
 
           {/* Form */}
-          <form className="mt-4 space-y-4 pb-4" onSubmit={handleSubmit}>
+          <form className="space-y-4 pb-4" onSubmit={handleSubmit}>
             {/* Report Title */}
             <div className="bg-white rounded-2xl p-4 shadow-sm">
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Report Title
+                Report Title <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -91,7 +110,7 @@ export default function FaultReportPage() {
             {/* Venue */}
             <div className="bg-white rounded-2xl p-4 shadow-sm">
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Venue
+                Venue <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -106,7 +125,7 @@ export default function FaultReportPage() {
             {/* Report Description */}
             <div className="bg-white rounded-2xl p-4 shadow-sm">
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Report Description
+                Report Description <span className="text-red-500">*</span>
               </label>
               <textarea
                 value={form.description}
@@ -162,21 +181,17 @@ export default function FaultReportPage() {
             {/* Submit Button */}
             <button
               type="submit"
-              className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 rounded-xl text-sm transition"
+              disabled={isSubmitting}
+              className={`w-full font-semibold py-3 rounded-xl text-sm transition ${
+                isSubmitting
+                  ? "bg-gray-400 text-white cursor-not-allowed"
+                  : "bg-blue-500 hover:bg-blue-600 text-white"
+              }`}
             >
-              Submit Report
+              {isSubmitting ? "Submitting..." : "Submit Report"}
             </button>
           </form>
         </div>
-      </div>
-
-      {/* Fixed Bottom Navbar */}
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[999] drop-shadow-2xl">
-        <NavBar
-          items={staffNav}
-          activeSection="home"
-          onSectionChange={handleNavClick}
-        />
       </div>
     </div>
   );
