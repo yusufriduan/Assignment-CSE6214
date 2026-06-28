@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { User } from "@/types";
-import { getAllUsers, deleteUser } from "@/app/actions/adminActions";
+import { fetchAllUsers, deleteUser } from "@/app/actions/UserController";
 import { useUser } from "@/app/components/UserBoundary/UserContext";
 import { MdOutlinePerson } from "react-icons/md";
 import { FiEdit2 } from "react-icons/fi";
@@ -27,7 +27,7 @@ export default function ManageUser({ setActiveSection, setSelectedUserId }: Prop
 
     useEffect(() => {
         async function fetchUsers() {
-            const data = await getAllUsers();
+            const data = await fetchAllUsers();
             setUsers(data);
             setFiltered(data);
             setFetching(false);

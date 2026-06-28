@@ -42,6 +42,38 @@ export async function registerUser(newUserParams: {
     }
 }
 
+export async function registerStaff(staffData: {
+    user_id: string;
+    name: string;
+    email: string;
+    password: string;
+    contact_number: string;
+    department: string;
+    role: "Campus Staff" | "Resource Manager" | "Admin";
+}) {
+    try {
+        const existing = await adminDb.collection("Users").doc(staffData.user_id).get();
+        if (existing.exists) return { success: false, message: "User ID already registered" };
+
+        const emailCheck = await adminDb.collection("Users").where("email", "==", staffData.email).get();
+        if (!emailCheck.empty) return { success: false, message: "Email already registered" };
+
+        const hashed = await bcrypt.hash(staffData.password, 10);
+        const newUser: User = {
+            ...staffData,
+            password: hashed,
+            account_status: "Active",
+            two_factor_enabled: false
+        };
+
+        await adminDb.collection("Users").doc(staffData.user_id).set(newUser);
+        return { success: true };
+    } catch (error) {
+        console.error("Error registering staff:", error);
+        return { success: false, message: "Failed to register staff" };
+    }
+}
+
 export async function loginUser(user_id: string, password: string) {
     try {
         const userRef = adminDb.collection('Users').doc(user_id);
@@ -94,5 +126,81 @@ export async function resetPassword(user_id: string, newPassword: string) {
     } catch (error) {
         console.error('Error resetting password:', error);
         return { success: false, message: error instanceof Error ? error.message : 'Unknown error' };
+    }
+}
+
+export async function fetchAllUsers() {
+    try {
+        const snapshot = await adminDb.collection("Users").get();
+        return snapshot.docs.map(doc => ({
+            user_id: doc.id,
+            ...cleanFirestoreData(doc.data())
+        })) as User[];
+    } catch (error) {
+        console.error("Error fetching users:", error);
+        return [];
+    }
+}
+
+export async function fetchUser(user_id: string) {
+    try {
+        const doc = await adminDb.collection("Users").doc(user_id).get();
+        if (!doc.exists) return null;
+        return { user_id: doc.id, ...cleanFirestoreData(doc.data()) } as User;
+    } catch (error) {
+        console.error("Error fetching user:", error);
+        return null;
+    }
+}
+
+export async function modifyUser(user_id: string, data: Partial<User>) {
+    try {
+        await adminDb.collection("Users").doc(user_id).update(data);
+        return { success: true };
+    } catch (error) {
+        console.error("Error updating user:", error);
+        return { success: false, message: "Failed to update user" };
+    }
+}
+
+export async function deleteUser(user_id: string) {
+    try {
+        await adminDb.collection("Users").doc(user_id).delete();
+        return { success: true };
+    } catch (error) {
+        console.error("Error deleting user:", error);
+        return { success: false, message: "Failed to delete user" };
+    }
+}
+
+
+
+// export async function getAllFeedbacks() {
+//     try {
+//         const snapshot = await adminDb.collection("Feedbacks").orderBy("timestamp", "desc").get();
+//         return snapshot.docs.map(doc => ({ id: doc.id, ...cleanFirestoreData(doc.data()) }));
+//     } catch (error) {
+//         console.error("Error fetching feedbacks:", error);
+//         return [];
+//     }
+// }
+
+export async function fetchUserForAutofill(user_id: string) {
+    try {
+        const doc = await adminDb.collection('Users').doc(user_id).get();
+        
+        if (doc.exists) {
+            const data = doc.data();
+            return {
+                name: data?.name || '',
+                email: data?.email || '',
+                contact_number: data?.contact_number || '',
+                department: data?.department || ''
+            };
+        }
+        return null;
+    } catch (error) {
+        console.error("Error fetching user for autofill:", error);
+        return null;
     }
 }

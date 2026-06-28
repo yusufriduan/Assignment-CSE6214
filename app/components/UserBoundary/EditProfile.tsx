@@ -3,7 +3,7 @@ import Input from "../input";
 import { MdPerson, MdOutlineMail, MdOutlinePhone, MdPassword } from "react-icons/md";
 import Toggle from "../toggleComponents";
 import { useState, useEffect } from "react";
-import { updateUserProfile } from "@/app/actions/userActions";
+import { modifyUser } from "@/app/actions/UserController";
 import { useUser } from "@/app/components/UserBoundary/UserContext";
 
 interface EditProfileProps {
@@ -33,7 +33,7 @@ export default function EditProfile({ setActiveSection }: EditProfileProps) {
         }
 
         try {
-            await updateUserProfile(userId, {
+            await modifyUser(userId, {
                 two_factor_enabled: state,
             });
             setSaveMessage(state ? "Two-factor authentication enabled." : "Two-factor authentication disabled.");
@@ -65,7 +65,7 @@ export default function EditProfile({ setActiveSection }: EditProfileProps) {
         setIsSaving(true);
         setSaveMessage("");
         try {
-            await updateUserProfile(userId, {
+            await modifyUser(userId, {
                 name: formData.fullName,
                 email: formData.email,
                 contact_number: formData.phoneNumber,

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getAllFeedbacks } from "@/app/actions/adminActions";
+// import { getAllFeedbacks } from "@/app/actions/UserController";
 import { useUser } from "@/app/components/UserBoundary/UserContext";
 import { MdOutlinePerson, MdChevronRight } from "react-icons/md";
 import Button from "../Button";
@@ -19,14 +19,14 @@ export default function Feedbacks() {
     const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
     const [fetching, setFetching] = useState(true);
 
-    useEffect(() => {
-        async function fetchFeedbacks() {
-            const data = await getAllFeedbacks();
-            setFeedbacks(data as Feedback[]);
-            setFetching(false);
-        }
-        fetchFeedbacks();
-    }, []);
+    // useEffect(() => {
+    //     async function fetchFeedbacks() {
+    //         const data = await getAllFeedbacks();
+    //         setFeedbacks(data as Feedback[]);
+    //         setFetching(false);
+    //     }
+    //     fetchFeedbacks();
+    // }, []);
 
     function getGreeting() {
         const h = new Date().getHours();

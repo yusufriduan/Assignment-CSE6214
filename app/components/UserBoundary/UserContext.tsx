@@ -3,7 +3,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
 import { useSession } from "next-auth/react";
 import { User } from '@/types';
-import { getUserProfile } from '@/app/actions/userActions';
+import { fetchUser } from '@/app/actions/UserController';
 
 interface UserContextType {
     user: User | null;
@@ -18,12 +18,12 @@ export function UserProvider({ children }: { children: ReactNode }) {
     const { data: session, status } = useSession();
 
     useEffect(() => {
-        const fetchUser = async () => {
+        const getUser = async () => {
             const userId = (session?.user as User | undefined)?.user_id;
 
             if (userId) {
                 try {
-                    const userProfile = await getUserProfile(userId);
+                    const userProfile = await fetchUser(userId);
                     setUser(userProfile);
                 } catch (error) {
                     console.error("Failed to fetch user profile:", error);
@@ -32,7 +32,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
             setIsLoading(false);
         };
 
-        fetchUser();
+        getUser();
     }, [session, status]);
 
     const value = useMemo(() => ({ user, isLoading }), [user, isLoading]);
