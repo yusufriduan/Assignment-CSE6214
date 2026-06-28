@@ -140,3 +140,37 @@ export async function modifyResource(id: string, name: string, img: string | nul
         throw error;
     }
 }
+
+export async function deleteResource(id: string){
+    try{
+        const docRef = adminDb.collection('Resources').doc(id);
+
+        /// Queue the deletion of the resource document
+        adminDb.batch().delete(docRef);
+
+        /// Delete all bookings associated with this resource
+        const bookingsQuery = await adminDb.collection("Bookings")
+            .where("resource", "==", docRef)
+            .get();
+
+        bookingsQuery.docs.forEach((bookingDoc) => {
+            adminDb.batch().delete(bookingDoc.ref);
+        });
+
+        /// Delete all maintenance requests associated with this resource
+        const maintenanceQuery = await adminDb.collection("MaintenanceRequests")
+            .where("faulty_resource", "==", docRef)
+            .get();
+
+        maintenanceQuery.docs.forEach((maintenanceDoc) => {
+            adminDb.batch().delete(maintenanceDoc.ref);
+        });
+
+        /// Commit the batch deletion
+        await adminDb.batch().commit();
+
+        return {success: true}
+    } catch (error) {
+        return {error: error}
+    }
+}
