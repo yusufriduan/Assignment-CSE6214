@@ -99,12 +99,39 @@ export async function getUserRequest(userId: string): Promise<MaintenanceRequest
     }
 }
 
+<<<<<<< Updated upstream
 export async function submitFaultReport(reportData: MaintenanceRequest) {
+=======
+export interface MaintenanceReportInput {
+    fault_title: string;
+    request_author_id: string;
+    request_author_email: string;
+    faulty_resource_ref: string;
+    fault_detail: string;
+    proof_url: string;
+    status: "Pending" | "Scheduled" | "Complete";
+    request_date: Date;
+    scheduledServiceDate: Date | null;
+}
+
+export async function createRequest(reportData: MaintenanceReportInput) {
+>>>>>>> Stashed changes
     try {
-        await adminDb.collection("MaintenanceRequests").doc(reportData.fault_id).set(reportData);
-        return { success: true };
+        const requestRef = adminDb.collection("MaintenanceRequests").doc();
+        await requestRef.set({
+            fault_title: reportData.fault_title,
+            request_author: await adminDb.collection('Users').doc(reportData.request_author_id).get(),
+            request_author_email: reportData.request_author_email,
+            faulty_resource: adminDb.doc(reportData.faulty_resource_ref),
+            fault_detail: reportData.fault_detail,
+            proof_url: reportData.proof_url,
+            status: reportData.status,
+            request_date: Timestamp.fromDate(reportData.request_date),
+            scheduledServiceDate: reportData.scheduledServiceDate ? Timestamp.fromDate(reportData.scheduledServiceDate) : null,
+        });
+        return { success: true, fault_id: requestRef.id };
     } catch (error) {
         console.error("Error submitting fault report:", error);
-        return { success: false };
+        return { success: false, message: error instanceof Error ? error.message : "Unable to submit fault report" };
     }
 }

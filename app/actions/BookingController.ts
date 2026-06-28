@@ -22,6 +22,60 @@ export async function getStudentBookings(userId: string): Promise<Booking[]> {
     }
 }
 
+export async function getBookingById(bookingId: string): Promise<Booking | null> {
+    try {
+        const doc = await adminDb.collection('Bookings').doc(bookingId).get();
+        if (!doc.exists) {
+            return null;
+        }
+
+        const data = doc.data();
+        if (!data) {
+            return null;
+        }
+
+        const ownerRef = data.booking_owner as DocumentReference;
+        const ownerSnap = await ownerRef.get();
+        const ownerData = ownerSnap.data();
+        const resourceRef = data.resource as DocumentReference;
+        const resourceSnap = await resourceRef.get();
+        const resourceData = resourceSnap.data();
+
+        if (!ownerData || !resourceData) {
+            return null;
+        }
+
+        const owner: User = {
+            user_id: ownerSnap.id,
+            ...cleanFirestoreData(ownerData),
+        } as User;
+
+        const resource: Resource = {
+            resource_id: resourceSnap.id,
+            resource_name: resourceData.resource_name,
+            resource_dept: resourceData.resource_dept,
+            resource_img_url: resourceData.resource_img_url,
+            resource_status: resourceData.status,
+            resource_equipments: resourceData.resource_equipments,
+        };
+
+        return {
+            booking_id: doc.id,
+            booking_owner: owner,
+            resource,
+            booking_start: (data.booking_start as Timestamp).toDate(),
+            booking_end: (data.booking_end as Timestamp).toDate(),
+            booking_status: data.booking_status,
+            booking_reason: data.booking_reason,
+            request_created_at: (data.request_created_at as Timestamp).toDate(),
+            prev_booking: data.prev_booking,
+        };
+    } catch (error) {
+        console.error("Error fetching booking by id:", error);
+        return null;
+    }
+}
+
 export async function createBooking(bookingData: Booking) {
     try {
         if (bookingData.booking_end <= bookingData.booking_start) {

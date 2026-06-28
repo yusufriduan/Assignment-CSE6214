@@ -52,4 +52,35 @@ export interface Notification {
     timestamp: Date;
     isRead: boolean;
     targetUser: string;
+<<<<<<< Updated upstream
+=======
+}
+
+export interface Feedback {
+    feedback_id?: string;
+    user_id: string;
+    user_name: string;
+    user_email: string;
+    department: string;
+    resource_name: string;
+    booking_date: string;
+    comments: string;
+    created_at?: Date;
+}
+
+export interface AnalyticsData {
+    bookingCount: number,
+    bookingTopResources: {
+        resourceId: string;
+        name: string;
+        count: number;
+    }[],
+    peakBookingHours: number,
+    reportCount: number,
+    reportTopResources: {
+        resourceId: string;
+        name: string;
+        count: number;
+    }[]
+>>>>>>> Stashed changes
 }
