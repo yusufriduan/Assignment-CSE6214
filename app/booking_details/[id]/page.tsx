@@ -11,6 +11,7 @@ import NavBar, { NavItem } from "../../components/NavBar";
 import BackButton from "../../components/BackButton";
 import { fetchAllBooking, approveBooking, rejectBooking } from "../../actions/BookingController";
 import { fetchResource } from "../../actions/ResourceController";
+import { Booking } from "@/types";
 
 interface ResourceDetailsPageProps {
   params: Promise<{ id: string }>;
@@ -57,7 +58,7 @@ export default function ResourceDetailsPage({ params }: ResourceDetailsPageProps
       }
 
       // Get resource equipments if available
-      let equipments = [];
+      let equipments: any[] = [];
       const resourceId = foundBooking.resource?.resource_id;
       if (resourceId) {
         try {
@@ -90,7 +91,10 @@ export default function ResourceDetailsPage({ params }: ResourceDetailsPageProps
         booking.booking_id,
         booking.booking_owner?.email || "",
         booking.booking_owner?.name || "User",
-        booking.resource?.resource_name || "Resource"
+        booking.resource.resource_id || 0,
+        booking.resource?.resource_name || "Resource",
+        new Date(booking.booking_start),
+        new Date(booking.booking_end)
       );
       if (result.success) {
         setActionTaken("approved");
@@ -334,7 +338,7 @@ export default function ResourceDetailsPage({ params }: ResourceDetailsPageProps
         </div>
 
         {/* Approval Section */}
-        {isResourceManager && booking.booking_status === "Pending" && (
+        {isResourceManager && booking.booking_status === "Awaiting Approval" && (
           <div className="rounded-3xl bg-gray-200 p-4 mt-6">
             <p className="text-base font-bold text-black mb-3">
               This request is still pending for approval
@@ -363,14 +367,14 @@ export default function ResourceDetailsPage({ params }: ResourceDetailsPageProps
           </div>
         )}
 
-        {isResourceManager && booking.booking_status !== "Pending" && (
+        {isResourceManager && booking.booking_status !== "Awaiting Approval" && (
           <div className="rounded-3xl bg-gray-100 p-4 mt-6">
             <p className="text-base font-bold text-black mb-2">
               This request has been {booking.booking_status?.toLowerCase() || "processed"}
             </p>
             <button
-              onClick={() => router.push("/dashboard?tab=booking")}
-              className="w-full bg-blue-500 text-white font-bold py-3 rounded-full transition"
+              onClick={() => router.back()}
+              className="w-full bg-blue-500 text-white font-bold py-3 rounded-full transition cursor-pointer"
             >
               Back to Bookings
             </button>

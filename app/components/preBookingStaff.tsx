@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import Button from "./Button";
 import Input from "./input";
-import { fetchUserForAutofill } from "@/app/actions/userActions";
+import { fetchUser } from "../actions/UserController";
 
 interface PreBookingProps{
     setActiveSection: (section: string) => void;
@@ -34,7 +34,7 @@ export default function preBooking({ setActiveSection, setBookingData }: PreBook
 
         const timer = setTimeout(async () => {
             setIsSearching(true);
-            const userData = await fetchUserForAutofill(UserID);
+            const userData = await fetchUser(UserID);
             if (userData) {
                 setFullName(userData.name);
                 setEmail(userData.email);

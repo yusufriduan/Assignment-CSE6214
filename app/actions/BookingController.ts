@@ -227,79 +227,92 @@ export async function rejectBooking(bookingId: string, email: string, reason: st
 }
 
 export async function approveBooking(bookingId: string, email: string, name: string, resource_id: string, resource: string, start: Date, end: Date){
-    try{
-        const bookingRef = await adminDb.collection('Bookings').doc(bookingId);
-        await bookingRef.update({
-            booking_status: "Booked"
-        })
+    try {
+        const startDate = new Date(start);
+        const endDate = new Date(end);
 
-        const resourceRef = await adminDb.collection('Resources').doc(resource_id);
-        await resourceRef.update({
-            resource_status: "Booked"
-        })
+        const startTimestamp = Timestamp.fromDate(startDate);
+        const endTimestamp = Timestamp.fromDate(endDate);
 
-        const startTimestamp = Timestamp.fromDate(start);
-        const endTimestamp = Timestamp.fromDate(end);
-
-        const conflictingRefs = await adminDb.collection('Bookings')
+        const allResourceRefs = await adminDb.collection('Bookings')
         .where('resource', '==', `/Resources/${resource_id}`)
-        .where('booking_end', '>', startTimestamp)
-        .where('booking_start', '<', endTimestamp)
         .get();
 
-        if (!conflictingRefs.empty) {
-            const rejectionPromises = conflictingRefs.docs.map(async (doc) => {
-                const bookingData = doc.data();
-                const bookingId = doc.id;
+    const conflictingDocs = allResourceRefs.docs.filter(doc => {
+        // Exclude the current booking
+        if (doc.id === bookingId) return false;
 
-                const userRef = typeof bookingData.booking_owner === 'string' 
-                    ? adminDb.doc(bookingData.booking_owner) 
-                    : bookingData.booking_owner;
+        const data = doc.data();
+        
+        // Ensure timestamps exist before comparing
+        const bookingStart = data.booking_start;
+        const bookingEnd = data.booking_end;
+
+        const hasConflict = bookingEnd > startTimestamp && bookingStart < endTimestamp;
+
+        return hasConflict;
+    });
+
+    if (conflictingDocs.length > 0) {
+        const rejectionPromises = conflictingDocs.map(async (doc) => {
+            const bookingData = doc.data();
+            const conflictingBookingId = doc.id;
+
+            const userRef = typeof bookingData.booking_owner === 'string' 
+                ? adminDb.doc(bookingData.booking_owner) 
+                : bookingData.booking_owner;
+            
+            const userSnap = await userRef.get();
+            const userData = userSnap.data() || {};
+
+            const resRef = typeof bookingData.resource === 'string' 
+                ? adminDb.doc(bookingData.resource) 
+                : bookingData.resource;
                 
-                const userSnap = await userRef.get();
-                const userData = userSnap.data() || {};
+            const resourceSnap = await resRef.get();
+            const resourceData = resourceSnap.data() || {};
 
-                const resourceRef = typeof bookingData.resource === 'string' 
-                    ? adminDb.doc(bookingData.resource) 
-                    : bookingData.resource;
-                    
-                const resourceSnap = await resourceRef.get();
-                const resourceData = resourceSnap.data() || {};
+            const userEmail = userData.email || 'no-email@domain.com';
+            const userName = userData.name || 'User';
+            const resourceName = resourceData.resource_name || 'Requested Resource'; 
+            const reason = "Time slot conflict with an approved booking.";
 
-                const email = userData.email || 'no-email@domain.com';
-                const name = userData.name || 'User';
-                const resourceName = resourceData.resource_name || 'Requested Resource'; 
-                const reason = "Time slot conflict with an approved booking.";
-
-                return rejectBooking(bookingId, email, reason, name, resourceName);
-            });
+            return rejectBooking(conflictingBookingId, userEmail, reason, userName, resourceName);
+        });
 
             const results = await Promise.all(rejectionPromises);
             console.log(`Processed ${results.length} rejections.`);
         }
 
-        // send email
+        const bookingRef = adminDb.collection('Bookings').doc(bookingId);
+        await bookingRef.update({
+            booking_status: "Booked"
+        });
+
+        const resourceRef = adminDb.collection('Resources').doc(resource_id);
+        await resourceRef.update({
+            resource_status: "Booked"
+        });
         const mailOptions = {
             from: `Campus Resource Booking System <${process.env.SMTP_FROM_EMAIL}>`,
             to: email,
             subject: 'Booking Request Approval Notification',
             text: `Hello ${name},
 
-            We are pleased to your booking request for ${resource} has been approved! Please do not forget to check in
-            at least 24 hours before your booking starts to avoid it from being cancelled.
+We are pleased to inform you that your booking request for ${resource} has been approved! Please do not forget to check in at least 24 hours before your booking starts to avoid it from being cancelled.
 
-            If you wish to contact us, feel free to reply to this email and a staff member will get back to you soon.`,
+If you wish to contact us, feel free to reply to this email and a staff member will get back to you soon.`,
             html: `
             <div style="font-family: sans-serif; text-align: center;">
                 <h1>Hello ${name},</h1>
-                <p>]
-                    We are pleased to your booking request for <b>${resource}</b> has been approved! Please do not forget to check in
+                <p>
+                    We are pleased to inform you that your booking request for <b>${resource}</b> has been approved! Please do not forget to check in
                     at least 24 hours before your booking starts to avoid it from being cancelled.
                 </p>
                 
-                <p>If you wish to contact us, feel free to reply to this email and a staff will get to you soon.</p>
+                <p>If you wish to contact us, feel free to reply to this email and a staff member will get back to you soon.</p>
                 <br>
-                <img src="https://tqhyjalqieggxdxrmetq.supabase.co/storage/v1/object/public/profile_pictures/absolutecinema.png" alt="crbs-pic" width="150"></img>
+                <img src="https://tqhyjalqieggxdxrmetq.supabase.co/storage/v1/object/public/profile_pictures/absolutecinema.png" alt="crbs-pic" width="150">
             </div>
             `,
         };
@@ -308,12 +321,13 @@ export async function approveBooking(bookingId: string, email: string, name: str
 
         await createNotification(bookingId, "Booking Approved", `Your booking request for ${resource} has been approved.`);
 
-        return {success: true}
-    } catch (error){
+        return { success: true };
+    } catch (error: any) {
         console.log(error);
-        return {error: error}
+        return { error: error.message || error };
     }
 }
+
 
 export async function getBookingWithinDuration(start: Timestamp, end: Timestamp){
     try{
@@ -429,6 +443,8 @@ export async function editBooking(data: EditBookingData) {
     console.error("Error submitting edited booking:", error);
     return { error: "Failed to submit changes. Please try again." };
   }
+}
+
 export async function modifyBookingStatus(id: string, status: string){
     try{
         const bookingRef = await adminDb.collection("Bookings").doc(id);

@@ -27,7 +27,7 @@ export interface Booking {
     booking_owner: User;
     booking_start: Date;
     booking_end: Date;
-    booking_status: "Booked" | "Check-in" | "Ended" | "Cancelled" | "Awaiting Approval" | "Rejected";
+    booking_status: "Booked" | "Check-in" | "Ended" | "Cancelled" | "Awaiting Approval" | "Rejected" | "Pending Re-approval";
     booking_reason: string;
     resource: Resource;
     request_created_at: Date;

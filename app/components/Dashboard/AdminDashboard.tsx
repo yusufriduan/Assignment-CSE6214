@@ -10,8 +10,12 @@ import Feedbacks from "../admin/Feedbacks";
 import { MdOutlinePeople, MdOutlineAssignment } from "react-icons/md";
 import { UserProvider } from "../UserBoundary/UserContext";
 
-export default function AdminDashboard() {
-    const [activeSection, setActiveSection] = useState("manage-users");
+interface ResourceManagerDashboardProp {
+    default_sect: string | null
+}
+
+export default function AdminDashboard({ default_sect }: ResourceManagerDashboardProp) {
+    const [activeSection, setActiveSection] = useState(default_sect || "manage-users");
     const [selectedUserId, setSelectedUserId] = useState("");
 
     const adminNav: NavItem[] = [

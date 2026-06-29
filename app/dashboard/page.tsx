@@ -26,10 +26,10 @@ export default async function Dashboard({ searchParams }: PageProps) {
     return <StaffDashboard default_sect={default_sect} />;
     
   } else if (userRole === "resource manager") {
-    return <ResourceManager default_sect={default_sect} />;
+    return <ResourceManager />;
   
   } else if (userRole === "admin") {
-    return <AdminDashboard />; 
+    return <AdminDashboard default_sect={default_sect} />; 
     
   } else {
     return <div className="p-10 text-center text-red-500 font-bold">Unauthorized Role</div>;
