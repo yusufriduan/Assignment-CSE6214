@@ -14,7 +14,8 @@ interface FaultReport {
 export default function FaultReportPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
-  
+  const params = useParams();
+  const resourceIdFromUrl = Array.isArray(params?.id) ? params.id[0] : params?.id;
   const [form, setForm] = useState<FaultReport>({
     resourceId: "",
     location: "",
