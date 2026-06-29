@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { MdArrowBack } from "react-icons/md";
-import { fetchBookingForEdit, submitEditedBooking } from "../actions/EditBookingController";
+import { fetchBookingForEdit, editBooking } from "../actions/BookingController";
 
 interface EditBookingForm {
   booking_id: string;
@@ -98,7 +98,7 @@ export default function EditBookingsPage() {
     setError(null);
 
     try {
-      const result = await submitEditedBooking({
+      const result = await editBooking({
         booking_id: form.booking_id,
         user_id: form.user_id,
         resource_id: form.resource_id,
