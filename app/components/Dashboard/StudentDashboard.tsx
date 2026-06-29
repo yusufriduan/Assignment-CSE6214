@@ -10,6 +10,7 @@ import VenueBooking from "../VenueBooking";
 import BookingSummary from "../BookingSummary";
 import Profile from "../UserBoundary/Profile";
 import EditProfile from "../UserBoundary/EditProfile";
+import SettingsPage from "../settings";
 import { UserProvider } from "../UserBoundary/UserContext";
 
 interface StudentDashboardProp {
@@ -79,6 +80,8 @@ export default function Student({ default_sect }: StudentDashboardProp) {
                 return <EditProfile setActiveSection={setActiveSection} />;
             case "profile-reports":
                 return <Profile setActiveSection={setActiveSection} initialTab="reports" />
+            case "settings":
+                return <SettingsPage setActiveSection={setActiveSection} />;
             default:
                 return <div>Section not found</div>;
         }

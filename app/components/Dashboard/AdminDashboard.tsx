@@ -7,11 +7,17 @@ import UserDetails from "../admin/UserDetails";
 import EditUser from "../admin/EditUser";
 import RegisterStaff from "../admin/RegisterStaff";
 import Feedbacks from "../admin/Feedbacks";
+import SettingsPage from "../settings";
+import EditProfile from "../UserBoundary/EditProfile";
 import { MdOutlinePeople, MdOutlineAssignment } from "react-icons/md";
 import { UserProvider } from "../UserBoundary/UserContext";
 
-export default function AdminDashboard() {
-    const [activeSection, setActiveSection] = useState("manage-users");
+interface ResourceManagerDashboardProp {
+    default_sect: string | null
+}
+
+export default function AdminDashboard({ default_sect }: ResourceManagerDashboardProp) {
+    const [activeSection, setActiveSection] = useState(default_sect || "manage-users");
     const [selectedUserId, setSelectedUserId] = useState("");
 
     const adminNav: NavItem[] = [
@@ -30,7 +36,11 @@ export default function AdminDashboard() {
             case "register-staff":
                 return <RegisterStaff setActiveSection={setActiveSection} />;
             case "feedbacks":
-                return <Feedbacks />;
+                return <Feedbacks setActiveSection={setActiveSection} />;
+            case "settings":
+                return <SettingsPage setActiveSection={setActiveSection} />;
+            case "edit-profile":
+                return <EditProfile setActiveSection={setActiveSection} />;
             default:
                 return <div>Section not found</div>;
         }

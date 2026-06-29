@@ -72,6 +72,7 @@ export default function preBooking({ setActiveSection, setBookingData }: PreBook
             alert("Booking start date and time cannot be in the past.");
             return;
         }
+        
         // Add validation for end date > start date
         if (new Date(bookingEnd) <= new Date(bookingStart)) {
             alert("End booking date and time must be after the start date and time.");

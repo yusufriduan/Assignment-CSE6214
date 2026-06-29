@@ -112,7 +112,7 @@ export default function Login() {
                   </label>
                 </div>
               </div>
-              <Button type="submit" className="!text-white py-3 !rounded-2xl !w-45 justify-between" buttonText="→ Login" />
+              <Button type="submit" className="py-3 !rounded-2xl !w-45 justify-between" buttonText="→ Login" />
             </form>
             <div className="text-sm mt-8">
               <p>

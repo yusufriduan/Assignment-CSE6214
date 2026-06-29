@@ -4,26 +4,43 @@ import BackButton from "@/app/components/BackButton";
 import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
 import NavBar, {NavItem} from "@/app/components/NavBar";
-import { MdHome, MdPerson } from "react-icons/md";
-import { FaCalendarPlus } from "react-icons/fa";
+import { LuHouse, LuCalendarPlus, LuBookPlus, LuUsers } from "react-icons/lu";
+import { MdOutlineMonitorHeart, MdOutlineReportGmailerrorred, MdOutlinePerson } from "react-icons/md";
 import { redirect } from "next/navigation";
 import { fetchResource, Resource } from "../actions/ResourceController";
 import { DEPARTMENTS } from "../constants";
 
 interface ResourceDetailsProp{
     resourceId: string
+    userRole?: "student" | "campus staff" | "resource manager"
 }
 
-export function ResourceDetails({resourceId}: ResourceDetailsProp){
+export function ResourceDetails({resourceId, userRole}: ResourceDetailsProp){
     const [activeSection, setActiveSection] = useState("booking");
     const [loading, setLoading] = useState<boolean>(true);
     const [currentResource, setCurrentResource] = useState<Resource | null>(null)
 
-    const bookingRecipientNav : NavItem[] = [
-        { id: "home", label: "Home", icon: MdHome },
-        { id: "booking", label: "Booking", icon: FaCalendarPlus },
-        { id: "profile", label: "Profile", icon: MdPerson },
+    const resourceManagerNav : NavItem[] = [
+        { id: "manage-booking", label: "Booking", icon: LuCalendarPlus },
+        { id: "manage-resources", label: "Resources", icon: LuBookPlus },
+        { id: "analytics", label: "Analytics", icon: MdOutlineMonitorHeart },
+        { id: "reports", label: "Maintenance", icon: MdOutlineReportGmailerrorred },
     ];
+
+    const studentNav : NavItem[] = [
+        { id: "home", label: "Home", icon: LuHouse },
+        { id: "booking", label: "Booking", icon: LuCalendarPlus },
+        { id: "profile", label: "Profile", icon: MdOutlinePerson },
+    ];
+
+    const staffNav: NavItem[] = [
+        { id: "home", label: "Home", icon: LuHouse },
+        { id: "booking", label: "Booking", icon: LuCalendarPlus },
+        { id: "history", label: "History", icon: LuUsers },
+        { id: "profile", label: "Profile", icon: MdOutlinePerson },
+    ];
+
+    const activeNavItem = userRole === "resource manager" ? resourceManagerNav : userRole === "campus staff" ? staffNav : studentNav;
 
     const onToggleChange = (id: string) => {
         redirect(`/dashboard?default_sec=${id}`);
@@ -88,7 +105,7 @@ export function ResourceDetails({resourceId}: ResourceDetailsProp){
             <div className="h-32"></div>
             <div className="fixed bottom-8 left-1/2 -translate-x-1/2 drop-shadow-2xl">
                 <NavBar 
-                    items={bookingRecipientNav} 
+                    items={activeNavItem} 
                     activeSection={activeSection} 
                     onSectionChange={onToggleChange} 
                 />

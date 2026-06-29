@@ -67,7 +67,7 @@ export default function Profile({ setActiveSection, initialTab = "bookings" }: P
                 </div>
                 <div className="flex flex-row gap-3">
                     <Button className="!h-10" buttonText="Edit Profile" onClick={() => setActiveSection("edit-profile")} />
-                    <Button className="!w-10 !h-10" buttonText="🚪" onClick={() => signOut({ callbackUrl: '/login' })} />
+                    <Button className="!w-10 !h-10" buttonText="🚪" onClick={() => signOut({ redirectTo: '/login' })} />
                 </div>
             </header>
             <div className="flex flex-col gap-4 w-full">

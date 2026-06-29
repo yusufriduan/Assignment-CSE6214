@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/navigation";
 import { FaRegEdit, FaTrash } from "react-icons/fa";
-import { useState } from "react";
 import { useSession } from "next-auth/react";
 import Button from "../components/Button";
 

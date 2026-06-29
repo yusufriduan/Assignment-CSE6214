@@ -68,7 +68,7 @@ export default function ManageUser({ setActiveSection, setSelectedUserId }: Prop
                 </div>
                 <div className="flex items-center gap-2">
                     <Button buttonText="+ Add User" className="!text-sm !py-2 !px-4 !rounded-full !h-fit" onClick={() => setActiveSection("register-staff")} />
-                    <Button buttonText="🚪" className="!w-10 !h-10" onClick={() => router.push("/login")} />
+                    <Button buttonText="⚙️" className="!w-10 !h-10" onClick={() => setActiveSection("settings")} />
                 </div>
             </header>
 

@@ -448,6 +448,8 @@ export async function editBooking(data: EditBookingData) {
     console.error("Error submitting edited booking:", error);
     return { error: "Failed to submit changes. Please try again." };
   }
+}
+
 export async function modifyBookingStatus(id: string, status: string){
     try{
         const bookingRef = await adminDb.collection("Bookings").doc(id);

@@ -47,7 +47,7 @@ export default function forgotPassword() {
                     <>
                         <form className="mt-6 flex flex-col gap-8 items-center" onSubmit={onVerifyEmail} >
                             <Input name="email" key="email" label="Email" type="text" placeholder="Email" required />
-                            <Button type="submit" className="!w-fit !rounded-3xl !text-white !py-3 !px-5 rounded-md !hover:bg-blue-600 !transition-colors" buttonText='Reset Password' />
+                            <Button type="submit" className="!w-fit !rounded-3xl !py-3 !px-5 rounded-md !hover:bg-blue-600 !transition-colors" buttonText='Reset Password' />
                             <div className="text-sm">
                                 <p>Remember your password?{" "}
                                     <a href="/login" className="font-bold underline">Login</a>
@@ -69,7 +69,7 @@ export default function forgotPassword() {
                                     </label>
                                 </div>
                             </div>
-                            <Button type="submit" className="!w-fit !rounded-3xl !text-white !py-3 !px-5 rounded-md !hover:bg-blue-600 !transition-colors" buttonText='Reset Password' />
+                            <Button type="submit" className="!w-fit !rounded-3xl !py-3 !px-5 rounded-md !hover:bg-blue-600 !transition-colors" buttonText='Reset Password' />
                             <div className="text-sm">
                                 <p>Remember your password?{" "}
                                     <a href="/login" className="font-bold underline">Login</a>

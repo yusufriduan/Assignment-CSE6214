@@ -10,6 +10,8 @@ import { AnalyticsUI } from "../AnalyticsUI";
 import { MaintenanceUI } from "../MaintenanceUI";
 import Button from "../Button";
 import { useSession } from "next-auth/react";
+import SettingsPage from "../settings";
+import EditProfile from "../UserBoundary/EditProfile"
 
 interface ResourceManagerDashboardProp {
     default_sect: string | null
@@ -35,7 +37,7 @@ export default function ResourceManager({ default_sect }: ResourceManagerDashboa
         }
     };
 
-    const studentNav : NavItem[] = [
+    const resourceManagerNav : NavItem[] = [
         { id: "manage-booking", label: "Booking", icon: LuCalendarPlus },
         { id: "manage-resources", label: "Resources", icon: LuBookPlus },
         { id: "analytics", label: "Analytics", icon: MdOutlineMonitorHeart },
@@ -54,6 +56,7 @@ export default function ResourceManager({ default_sect }: ResourceManagerDashboa
                             </div>
                             
                             <Button className="!w-10 !h-10 !p-2" buttonText="🔔" />
+                            <Button className="!w-10 !h-10 !p-2 ml-2" buttonText="⚙️" onClick={() => setActiveSection('settings')} />
                         </header>
                         <BookingUI pageType="request_list" />
                     </div>
@@ -68,6 +71,7 @@ export default function ResourceManager({ default_sect }: ResourceManagerDashboa
                             </div>
                             
                             <Button className="!w-10 !h-10 !p-2" buttonText="🔔" />
+                            <Button className="!w-10 !h-10 !p-2 ml-2" buttonText="⚙️" onClick={() => setActiveSection('settings')} />
                         </header>
                         <ResourceUI pageType="list" />
                     </div>
@@ -83,6 +87,7 @@ export default function ResourceManager({ default_sect }: ResourceManagerDashboa
                             </div>
                             
                             <Button className="!w-10 !h-10 !p-2" buttonText="🔔" />
+                            <Button className="!w-10 !h-10 !p-2 ml-2" buttonText="⚙️" onClick={() => setActiveSection('settings')} />
                         </header>
                         <AnalyticsUI />
                     </div>
@@ -97,10 +102,15 @@ export default function ResourceManager({ default_sect }: ResourceManagerDashboa
                                 <p>Maintenance Request List</p>
                             </div>
                             <Button className="!w-10 !h-10 !p-2" buttonText="🔔" />
+                            <Button className="!w-10 !h-10 !p-2 ml-2" buttonText="⚙️" onClick={() => setActiveSection('settings')} />
                         </header>
                         <MaintenanceUI pageType="list" />;
                     </div>
                 )
+            case "settings":
+                return <SettingsPage setActiveSection={setActiveSection}  />;
+            case "edit-profile":
+                return <EditProfile setActiveSection={setActiveSection} />;
             default:
                 return <div>Section not found</div>;
         }
@@ -120,7 +130,7 @@ export default function ResourceManager({ default_sect }: ResourceManagerDashboa
       {/* The Dynamic Navbar */}
       <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[999] drop-shadow-2xl">
         <NavBar 
-            items={studentNav} 
+            items={resourceManagerNav} 
             activeSection={activeSection.startsWith("profile") ? "profile" : activeSection} 
             onSectionChange={handleNavClick} 
         />

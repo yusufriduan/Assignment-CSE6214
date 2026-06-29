@@ -5,7 +5,6 @@ import { DEPARTMENTS } from "../constants";
 import { useEffect } from "react";
 import Button from "./Button";
 import React from "react";
-import { Booking } from "@/types";
 
 interface bookingData {
     userId: string;
