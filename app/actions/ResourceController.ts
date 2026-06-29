@@ -155,7 +155,7 @@ export async function deleteResource(id: string){
             .get();
 
         bookingsQuery.docs.forEach((bookingDoc) => {
-            adminDb.batch().delete(bookingDoc.ref);
+            batch.delete(bookingDoc.ref);
         });
 
         /// Delete all maintenance requests associated with this resource
@@ -164,7 +164,7 @@ export async function deleteResource(id: string){
             .get();
 
         maintenanceQuery.docs.forEach((maintenanceDoc) => {
-            adminDb.batch().delete(maintenanceDoc.ref);
+            batch.delete(maintenanceDoc.ref);
         });
 
         /// Commit the batch deletion
