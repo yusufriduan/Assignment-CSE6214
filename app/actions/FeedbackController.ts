@@ -14,7 +14,7 @@ export async function fetchFeedbacks() {
         const sheets = google.sheets({ version: "v4", auth });
         const response = await sheets.spreadsheets.values.get({
             spreadsheetId: process.env.GOOGLE_SHEETS_SHEET_ID,
-            range: "Sheet1!A:E",
+            range: "Form Responses 1!A:F",
         });
 
         const rows = response.data.values;
