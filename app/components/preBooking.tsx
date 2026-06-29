@@ -8,6 +8,7 @@ interface PreBookingProps{
     setBookingData: (data: {
         userId: string;
         fullName: string;
+        phone: string;
         email: string;
         bookingStart: Date;
         bookingEnd: Date;
@@ -19,6 +20,7 @@ export default function preBooking({ setActiveSection, setBookingData }: PreBook
     const [UserID, setUserID] = useState("");
     const [FullName, setFullName] = useState("");
     const [Email, setEmail] = useState("");
+    const [Phone, setPhone] = useState("");
     const [bookingStart, setBookingStart] = useState("");
     const [bookingEnd, setBookingEnd] = useState("");
     const [bookingPurpose, setBookingPurpose] = useState("");
@@ -38,6 +40,7 @@ export default function preBooking({ setActiveSection, setBookingData }: PreBook
             if (userData) {
                 setFullName(userData.name);
                 setEmail(userData.email);
+                setPhone(userData.contact_number)
             } else {
                 setFullName("");
                 setEmail("");
@@ -64,6 +67,11 @@ export default function preBooking({ setActiveSection, setBookingData }: PreBook
             alert("Please wait for user details to load or enter a valid User ID.");
             return;
         }
+
+        if (new Date(bookingStart) < new Date()) {
+            alert("Booking start date and time cannot be in the past.");
+            return;
+        }
         // Add validation for end date > start date
         if (new Date(bookingEnd) <= new Date(bookingStart)) {
             alert("End booking date and time must be after the start date and time.");
@@ -78,6 +86,7 @@ export default function preBooking({ setActiveSection, setBookingData }: PreBook
         setBookingData({
             userId: UserID,
             fullName: FullName,
+            phone: Phone,
             email: Email,
             bookingStart: new Date(bookingStart),
             bookingEnd: new Date(bookingEnd),
@@ -99,6 +108,7 @@ export default function preBooking({ setActiveSection, setBookingData }: PreBook
             <form className="mt-6 flex flex-col items-center gap-8" onSubmit={handleSubmit} noValidate>
                 <Input name="user-id" label="Student ID" type="text" placeholder="Student ID" value={UserID} onChange={(e) => setUserID(e.target.value)} required />
                 <Input name="full-name" label="Full Name" type="text" placeholder="Full Name" value={FullName} disabled />
+                <Input name="phoneNumber" label="Contact Number" type="number" placeholder="Contact Number" value={Phone} disabled />
                 <Input name="email" label="Student Email" type="text" placeholder="Student Email" value={Email} disabled />
                 <Input 
                     name="start-booking" 

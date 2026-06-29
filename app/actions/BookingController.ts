@@ -106,22 +106,41 @@ export async function getUserBookings(): Promise<Booking[]> {
     }
 }
 
-export async function createBooking(bookingData: Booking) {
+export async function createBooking(data: any) {
     try {
+
+        console.log(data);
+        const resourceRef = adminDb.collection("Resources").doc(data.resourceId);
+        const resourceSnapshot = await resourceRef.get();
+        const resourceData = resourceSnapshot.data()
+        const userRef = adminDb.collection("Users").doc(data.userId)
+
+        const bookingData = {
+            booking_owner: userRef, // Store as a DocumentReference
+            booking_start: data.bookingStart,
+            booking_end: data.bookingEnd,
+            booking_reason: data.bookingPurpose,
+            resource: resourceRef, // Store as a DocumentReference
+            booking_status: "Awaiting Approval",
+            request_created_at: data.request_created_date
+        };
+
+        if (!data.resourceId) {
+            throw new Error("No venue selected.");
+        }
+
         if (bookingData.booking_end <= bookingData.booking_start) {
             throw new Error("Booking end time must be after start time");
         }
 
-        await adminDb.collection("Bookings").add({
-            ...bookingData,
-        });
+        await adminDb.collection("Bookings").add(bookingData);
 
         const resourceManagersQuery = await adminDb.collection("Users")
             .where("role", "==", "Resource Manager")
             .get();
 
         const notificationPromises = resourceManagersQuery.docs.map(async (doc) => {
-            createNotification(doc.id, "New Booking Request", `A new booking request has been made for ${bookingData.resource.resource_name}.`);
+            createNotification(doc.id, "New Booking Request", `A new booking request has been made for ${resourceData?.resource_name}.`);
         });
 
         await Promise.all(notificationPromises);

@@ -7,6 +7,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import HomeDashboard from "../HomeDashboard";
 import PreBooking from "../preBooking";
 import VenueBooking from "../VenueBooking";
+import BookingSummary from "../BookingSummary";
 import Profile from "../UserBoundary/Profile";
 import EditProfile from "../UserBoundary/EditProfile";
 import { UserProvider } from "../UserBoundary/UserContext";
@@ -22,6 +23,9 @@ interface BookingData {
     bookingStart: Date;
     bookingEnd: Date;
     bookingPurpose: string;
+    resourceId?: string;
+    resourceName?: string;
+    request_created_date?: Date; 
 }
 
 export default function Student({ default_sect }: StudentDashboardProp) {
@@ -66,7 +70,9 @@ export default function Student({ default_sect }: StudentDashboardProp) {
             case "booking":
                 return <PreBooking setActiveSection={setActiveSection} setBookingData={setBookingData} />;
             case "venue-booking":
-                return <VenueBooking setActiveSection={setActiveSection} bookingData={bookingData} />;
+                return <VenueBooking setActiveSection={setActiveSection} bookingData={bookingData} setBookingData={setBookingData} />;
+            case "booking-summary":
+                return <BookingSummary setActiveSection={setActiveSection} bookingData={bookingData} setBookingData={setBookingData} />
             case "profile":
                 return <Profile setActiveSection={setActiveSection} initialTab="bookings" />;
             case "edit-profile":

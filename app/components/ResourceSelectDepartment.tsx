@@ -8,9 +8,10 @@ import { DEPARTMENTS } from "../constants"
 
 interface ResourceSelectDepartmentProp{
     department: string;
+    onSelectResource: (id: string, name: string, equipment: any[]) => void;
 }
 
-export function ResourceSelectDepartment({department}: ResourceSelectDepartmentProp){
+export function ResourceSelectDepartment({department, onSelectResource}: ResourceSelectDepartmentProp){
 
     const departmentFullName = DEPARTMENTS.get(department);
 
@@ -49,7 +50,7 @@ export function ResourceSelectDepartment({department}: ResourceSelectDepartmentP
                     resourceList ? 
                     resourceList.map((resource, index) => {
                         return(resource.id && resource.name ? 
-                        <ResourceButton key={index} ResourceID={resource.id} ResourceName={resource.name} isResourceManager={true} />
+                        <ResourceButton key={index} ResourceID={resource.id} ResourceName={resource.name} equipment={resource.equipments} isResourceManager={true} onBook={(id, name, equip) => onSelectResource(id, name, equip)} />
                         : null)
                     })
                     : null
