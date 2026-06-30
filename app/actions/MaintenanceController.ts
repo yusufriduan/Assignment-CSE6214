@@ -23,6 +23,22 @@ export async function fetchAllRequests() {
             const author = authorSnap?.data();
             const resource = resourceSnap?.data();
 
+            let status = "Pending";
+            const serviceDate = data.scheduledServiceDate;
+            if(serviceDate){
+                status = "Scheduled"
+            
+                if(serviceDate.toDate() < new Date()){
+                    status = "Complete"
+                    await doc.ref.update({
+                        status: "Complete"
+                    })
+                    await data.faulty_resource.update({
+                        resource_status: "Available"
+                    });
+                }
+            }
+
             if (!author || !resource) return null;
 
             return {
@@ -35,7 +51,7 @@ export async function fetchAllRequests() {
                 faulty_resource_dept: resource.resource_dept,
                 fault_detail: data.fault_detail,
                 proof_url: data.proof_url,
-                status: data.status,
+                status: status,
                 request_date: data.request_date?.toDate() || new Date(),
                 scheduledServiceDate: data.scheduledServiceDate?.toDate() || null
             } as MaintenanceRequest;
@@ -73,6 +89,23 @@ export async function fetchRequest(reportId: string){
             ]);
 
             if(author && resource){
+
+                let status = "Pending";
+                const serviceDate = data.scheduledServiceDate;
+                if(serviceDate){
+                    status = "Scheduled"
+                
+                    if(serviceDate.toDate() < new Date()){
+                        status = "Complete"
+                        await adminDb.collection("MaintenanceRequests").doc(reportId).update({
+                            status: "Complete"
+                        })
+                        await data.faulty_resource.update({
+                            resource_status: "Available"
+                        });
+                    }
+                }
+
                 return{
                     fault_id: reportId,
                     fault_title: data.fault_title,
@@ -83,7 +116,7 @@ export async function fetchRequest(reportId: string){
                     faulty_resource_dept: resource.resource_dept,
                     fault_detail: data.fault_detail,
                     proof_url: data.proof_url,
-                    status: data.status,
+                    status: status,
                     request_date: data.request_date.toDate(),
                     scheduledServiceDate: data.scheduledServiceDate?.toDate() || null
                 }

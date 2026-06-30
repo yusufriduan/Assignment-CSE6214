@@ -50,7 +50,7 @@ export function ResourceSelectDepartment({department, onSelectResource}: Resourc
                     resourceList ? 
                     resourceList.map((resource, index) => {
                         return(resource.id && resource.name ? 
-                        <ResourceButton key={index} ResourceID={resource.id} ResourceName={resource.name} equipment={resource.equipments} isResourceManager={true} onBook={(id, name, equip) => onSelectResource(id, name, equip)} />
+                        <ResourceButton key={index} ResourceID={resource.id} ResourceName={resource.name} equipment={resource.equipments} isResourceManager={true} onBook={(id, name, equip) => onSelectResource(id, name, equip)} resource_status={resource.status} />
                         : null)
                     })
                     : null

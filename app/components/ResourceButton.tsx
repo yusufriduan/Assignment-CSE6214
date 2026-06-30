@@ -13,9 +13,10 @@ interface ResourceButtonProp{
     isResourceManager: boolean;
     // EditAction: () => void;
     onBook?: (id: string, name: string, equipment: any[]) => void;
+    resource_status: string;
 }
 
-export function ResourceButton({ResourceID, ResourceName, equipment, onBook}: ResourceButtonProp){
+export function ResourceButton({ResourceID, ResourceName, equipment, onBook, resource_status}: ResourceButtonProp){
 
     const router = useRouter();
 
@@ -38,7 +39,7 @@ export function ResourceButton({ResourceID, ResourceName, equipment, onBook}: Re
     }
 
     return(
-        <div onClick={handleClick} id="button-cont" className="relative w-72 h-16 bg-secondary rounded-xl p-4 cursor-pointer mt-1 mb-1">
+        <div hidden={!isResourceManager && resource_status === "Under Maintenance"} onClick={handleClick} id="button-cont" className="relative w-72 h-16 bg-secondary rounded-xl p-4 cursor-pointer mt-1 mb-1">
             <h1 className="font-mono font-semibold text-xl">{ResourceName}</h1>
             { isResourceManager
             ? 

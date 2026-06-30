@@ -338,7 +338,7 @@ export default function BookingDetails({ params }: ResourceDetailsPageProps) {
         </div>
 
         {/* Approval Section */}
-        {isResourceManager && booking.booking_status === "Awaiting Approval" && (
+        {isResourceManager && (booking.booking_status === "Awaiting Approval" || booking.booking_status === "Pending Re-approval") && (
           <div className="rounded-3xl bg-gray-200 p-4 mt-6">
             <p className="text-base font-bold text-black mb-3">
               This request is still pending for approval

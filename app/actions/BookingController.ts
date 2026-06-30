@@ -89,7 +89,7 @@ export async function getUserBookings(): Promise<Booking[]> {
                         booking_status: data.booking_status || "Unknown",
                         booking_reason: data.booking_reason || "",
                         request_created_at: data.request_created_at?.toDate ? data.request_created_at.toDate().toISOString() : data.request_created_at,
-                        prev_booking: data.prev_booking?.id || null
+                        prev_booking: doc.id || null
                     });
                     
                 } catch (err) {
@@ -190,8 +190,8 @@ export async function fetchAllBooking(){
                     booking_status: data.booking_status,
                     booking_reason: data.booking_reason,
                     resource: resource,
-                    request_created_at: data.request_created_at.toDate().toISOString(),
-                    prev_booking: data.prev_booking?.id || null
+                    request_created_at: data.request_created_at.toDate(),
+                    prev_booking: doc.id
                 })
             }
         }
@@ -354,6 +354,14 @@ If you wish to contact us, feel free to reply to this email and a staff member w
                 const userId = userRef.id
                 await createNotification(userId, "Booking Approved", `Your booking request for ${resource} has been approved.`);
 
+            }
+
+            const prevBookingRef = bookingD.prev_booking as DocumentReference;
+            await bookingRef.update({
+                prev_booking: null
+            })
+            if(prevBookingRef){
+                await prevBookingRef.delete();
             }
         }
        

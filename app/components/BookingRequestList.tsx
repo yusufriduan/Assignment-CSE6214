@@ -11,13 +11,15 @@ export function BookingRequestList(){
 
     const [selectedDept, setSelectedDept] = useState("All");
     const [loading, setLoading] = useState(true);
-    const [bookingList, setBookingList] = useState<Booking[] | null>(null);
+    const [bookingList, setBookingList] = useState<Booking[]>([]);
 
     useEffect(() => {
         async function getBookingList(){
             try {
                 const bookings = await fetchAllBooking();
-                const pending = bookings.filter(booking => booking.booking_status === "Awaiting Approval");
+                const pending = bookings.filter(booking => (booking.booking_status === "Awaiting Approval" || booking.booking_status === "Pending Re-approval"));
+                console.log(pending);
+
                 setBookingList(pending);
             } catch (error) {
                 console.error(error);
@@ -46,9 +48,9 @@ export function BookingRequestList(){
                     {(() => {
                         // filter the list based on status and department first
                         const filteredBookings = (bookingList || []).filter(booking => {
-                            const matchesStatus = booking.booking_status === "Awaiting Approval";
+                            // const matchesStatus = (booking.booking_status === "Awaiting Approval" || booking.booking_status === "Pending Re-approval");
                             const matchesDept = selectedDept === "All" || selectedDept === booking.resource.resource_dept;
-                            return matchesStatus && matchesDept;
+                            return matchesDept;
                         });
 
                         // render based on whether the filtered list has items
