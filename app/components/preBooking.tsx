@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import Button from "./Button";
 import Input from "./input";
 import { fetchUserForAutofill } from "@/app/actions/UserController";
+import { useSession } from "next-auth/react";
 
 interface PreBookingProps{
     setActiveSection: (section: string) => void;
@@ -17,6 +18,8 @@ interface PreBookingProps{
 }
 
 export default function preBooking({ setActiveSection, setBookingData }: PreBookingProps) {
+    const {data: session, status} = useSession();
+    const isStaff = session?.user.role.toLowerCase() === "campus staff";
     const [UserID, setUserID] = useState("");
     const [FullName, setFullName] = useState("");
     const [Email, setEmail] = useState("");
@@ -26,6 +29,13 @@ export default function preBooking({ setActiveSection, setBookingData }: PreBook
     const [bookingPurpose, setBookingPurpose] = useState("");
 
     const [isSearching, setIsSearching] = useState(false);
+
+    useEffect(() => {
+        
+        if (session?.user?.id) {
+            setUserID(session.user.id);
+        }
+    }, [session]);
 
     useEffect(() => {
         if (!UserID.trim()) {
@@ -107,7 +117,7 @@ export default function preBooking({ setActiveSection, setBookingData }: PreBook
                     <p className="text-sm text-gray-600">Verify your details first.</p>
             </header>
             <form className="mt-6 flex flex-col items-center gap-8" onSubmit={handleSubmit} noValidate>
-                <Input name="user-id" label="Student ID" type="text" placeholder="Student ID" value={UserID} onChange={(e) => setUserID(e.target.value)} required />
+                <Input disabled={isStaff} name="user-id" label="Student ID" type="text" placeholder="Student ID" value={UserID} onChange={(e) => setUserID(e.target.value)} required />
                 <Input name="full-name" label="Full Name" type="text" placeholder="Full Name" value={FullName} disabled />
                 <Input name="phoneNumber" label="Contact Number" type="number" placeholder="Contact Number" value={Phone} disabled />
                 <Input name="email" label="Student Email" type="text" placeholder="Student Email" value={Email} disabled />
