@@ -289,6 +289,9 @@ export async function approveBooking(bookingId: string, email: string, name: str
             booking_status: "Booked"
         });
 
+        const booking = await bookingRef.get();
+        const bookingD = await booking.data();
+
         const resourceRef = adminDb.collection('Resources').doc(resource_id);
         await resourceRef.update({
             resource_status: "Booked"
@@ -319,8 +322,15 @@ If you wish to contact us, feel free to reply to this email and a staff member w
 
         await transporter.sendMail(mailOptions);
 
-        await createNotification(bookingId, "Booking Approved", `Your booking request for ${resource} has been approved.`);
+        if(bookingD){
+            const userRef = bookingD.booking_owner as DocumentReference;
+            if(userRef){
+                const userId = userRef.id
+                await createNotification(userId, "Booking Approved", `Your booking request for ${resource} has been approved.`);
 
+            }
+        }
+       
         return { success: true };
     } catch (error: any) {
         console.log(error);
