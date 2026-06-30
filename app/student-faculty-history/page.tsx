@@ -6,7 +6,7 @@ import NavBar, { NavItem } from "../components/NavBar";
 import { LuHouse, LuCalendarPlus, LuUsers } from "react-icons/lu";
 import { MdOutlinePerson } from "react-icons/md";
 import { fetchAllBooking } from "../actions/BookingController";
-import { getUserProfile } from "../actions/userActions";
+import { fetchUser } from "../actions/UserController";
 
 interface Booking {
   id: string;
@@ -41,16 +41,19 @@ export default function StudentFacultyHistoryPage() {
       setLoading(true);
       setError(null);
 
-      // Fetch all bookings from the database using the controller
+      console.log("Fetching all bookings...");
       const allBookings = await fetchAllBooking();
+      console.log("All bookings received:", allBookings);
       
       if (!allBookings || allBookings.length === 0) {
+        console.log("No bookings found");
         setStudents([]);
         setLoading(false);
         return;
       }
 
-      // Group bookings by student
+      console.log(`Processing ${allBookings.length} bookings...`);
+
       const studentMap = new Map<string, { 
         id: string; 
         name: string; 
@@ -59,59 +62,81 @@ export default function StudentFacultyHistoryPage() {
         bookings: Booking[] 
       }>();
 
-      // Process each booking
       for (const booking of allBookings) {
-        // Get student ID from booking_owner
-        const studentId = booking.booking_owner?.user_id;
-        if (!studentId) continue;
-
-        // Get student data from booking_owner
-        const studentData = booking.booking_owner;
-        
-        // If student not in map yet, create entry
-        if (!studentMap.has(studentId)) {
-          let faculty = "Unknown Faculty";
-          
-          try {
-            // Fetch full user profile to get department/faculty
-            const userProfile = await getUserProfile(studentId);
-            if (userProfile) {
-              faculty = userProfile.department || "Unknown Faculty";
-            }
-          } catch (err) {
-            console.error(`Failed to fetch profile for ${studentId}:`, err);
+        try {
+          // Get student ID from booking_owner
+          const studentId = booking.booking_owner?.user_id;
+          if (!studentId) {
+            console.log("Skipping booking - no student ID:", booking);
+            continue;
           }
 
-          studentMap.set(studentId, {
-            id: studentId,
-            name: studentData?.name || "Unknown Student",
-            faculty: faculty,
-            matric: studentId, // Using student ID as matric
-            bookings: []
-          });
-        }
+          console.log(`Processing booking for student: ${studentId}`);
 
-        // Add booking to student's list
-        const student = studentMap.get(studentId)!;
-        
-        // Format the booking data
-        const bookingStart = booking.booking_start;
-        const bookingEnd = booking.booking_end;
-        
-        student.bookings.push({
-          id: booking.booking_id || "",
-          resource: booking.resource?.resource_name || "Unknown Resource",
-          date: bookingStart ? bookingStart.toLocaleDateString() : "Unknown Date",
-          startTime: bookingStart ? bookingStart.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Unknown",
-          endTime: bookingEnd ? bookingEnd.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Unknown",
-          status: booking.booking_status || "Pending"
-        });
+          const studentData = booking.booking_owner;
+          
+          if (!studentMap.has(studentId)) {
+            let faculty = "Unknown Faculty";
+            
+            try {
+              // Fetch full user profile to get department/faculty
+              const userProfile = await fetchUser(studentId);
+              console.log(`User profile for ${studentId}:`, userProfile);
+              if (userProfile) {
+                faculty = userProfile.department || "Unknown Faculty";
+              }
+            } catch (err) {
+              console.error(`Failed to fetch profile for ${studentId}:`, err);
+            }
+
+            studentMap.set(studentId, {
+              id: studentId,
+              name: studentData?.name || "Unknown Student",
+              faculty: faculty,
+              matric: studentId,
+              bookings: []
+            });
+          }
+
+          const student = studentMap.get(studentId)!;
+          
+          // Handle date safely - check if booking_start exists and is a date
+          let bookingStart = null;
+          let bookingEnd = null;
+          
+          try {
+            if (booking.booking_start) {
+              bookingStart = typeof booking.booking_start === 'string' 
+                ? new Date(booking.booking_start) 
+                : booking.booking_start;
+            }
+            if (booking.booking_end) {
+              bookingEnd = typeof booking.booking_end === 'string' 
+                ? new Date(booking.booking_end) 
+                : booking.booking_end;
+            }
+          } catch (dateErr) {
+            console.error("Error parsing dates:", dateErr);
+          }
+          
+          student.bookings.push({
+            id: booking.booking_id || "",
+            resource: booking.resource?.resource_name || "Unknown Resource",
+            date: bookingStart ? bookingStart.toLocaleDateString() : "Unknown Date",
+            startTime: bookingStart ? bookingStart.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Unknown",
+            endTime: bookingEnd ? bookingEnd.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Unknown",
+            status: booking.booking_status || "Pending"
+          });
+        } catch (bookingErr) {
+          console.error("Error processing individual booking:", bookingErr);
+        }
       }
 
       // Convert map to array and sort by name
       const studentList = Array.from(studentMap.values())
         .sort((a, b) => a.name.localeCompare(b.name));
 
+      console.log(`Final student list: ${studentList.length} students`);
       setStudents(studentList);
     } catch (err) {
       console.error("Error fetching students with bookings:", err);
@@ -129,7 +154,6 @@ export default function StudentFacultyHistoryPage() {
     } else if (section === "profile") {
       router.push("/dashboard?tab=profile");
     } else if (section === "history") {
-      // Stay on this page
       return;
     }
   };
@@ -175,7 +199,6 @@ export default function StudentFacultyHistoryPage() {
 
   return (
     <div className="h-full bg-gray-50 flex flex-col overflow-hidden">
-      {/* Main Content */}
       <div className="flex-1 overflow-y-auto pb-32">
         <div className="w-full max-w-lg mx-auto px-4 pt-6">
           <div className="bg-white rounded-2xl p-6 shadow-sm">
@@ -260,7 +283,6 @@ export default function StudentFacultyHistoryPage() {
         </div>
       </div>
 
-      {/* Fixed Bottom Navbar */}
       <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[999] drop-shadow-2xl">
         <NavBar 
           items={staffNav} 
