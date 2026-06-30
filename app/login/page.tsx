@@ -97,7 +97,7 @@ export default function Login() {
             <p className="text-sm text-gray-600">Let's get you logged back in!</p>
             {message ? <p className="text-sm text-red-600 mt-3">{message}</p> : null}
             <form className="mt-6 flex flex-col items-center gap-8 w-full" onSubmit={handleLoginSubmit}>
-              <Input name="user-id" key="user-id" label="Username" type="text" placeholder="Student ID / Staff ID" required />
+              <Input name="user-id" key="user-id" label="User ID" type="text" placeholder="Student ID / Staff ID" required />
               <div className="flex flex-col gap-1 w-full">
                 <Input name="password" key="password" label="Password" type={passwordInput} placeholder="Password" required />
                 <div className="flex items-center mt-2">
