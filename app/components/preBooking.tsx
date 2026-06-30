@@ -117,10 +117,10 @@ export default function preBooking({ setActiveSection, setBookingData }: PreBook
                     <p className="text-sm text-gray-600">Verify your details first.</p>
             </header>
             <form className="mt-6 flex flex-col items-center gap-8" onSubmit={handleSubmit} noValidate>
-                <Input disabled={isStaff} name="user-id" label="Student ID" type="text" placeholder="Student ID" value={UserID} onChange={(e) => setUserID(e.target.value)} required />
-                <Input name="full-name" label="Full Name" type="text" placeholder="Full Name" value={FullName} disabled />
-                <Input name="phoneNumber" label="Contact Number" type="number" placeholder="Contact Number" value={Phone} disabled />
-                <Input name="email" label="Student Email" type="text" placeholder="Student Email" value={Email} disabled />
+                <Input disabled={isStaff} className="disabled:bg-gray-400 disabled:text-gray-600" name="user-id" label="Student ID" type="text" placeholder="Student ID" value={UserID} onChange={(e) => setUserID(e.target.value)} required />
+                <Input name="full-name" className="disabled:bg-gray-400 disabled:text-gray-600" label="Full Name" type="text" placeholder="Full Name" value={FullName} disabled />
+                <Input name="phoneNumber" className="disabled:bg-gray-400 disabled:text-gray-600" label="Contact Number" type="number" placeholder="Contact Number" value={Phone} disabled />
+                <Input name="email" className="disabled:bg-gray-400 disabled:text-gray-600" label="Student Email" type="text" placeholder="Student Email" value={Email} disabled />
                 <Input 
                     name="start-booking" 
                     label="Start Booking Date" 
