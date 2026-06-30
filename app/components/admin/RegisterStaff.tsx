@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { registerStaff } from "@/app/actions/UserController";
 import Input from "../input";
 import Button from "../Button";
@@ -14,7 +13,6 @@ const ROLES = ["Campus Staff", "Resource Manager", "Admin"] as const;
 type StaffRole = typeof ROLES[number];
 
 export default function RegisterStaff({ setActiveSection }: Props) {
-    const router = useRouter();
     const [formData, setFormData] = useState({
         user_id: "", name: "", email: "", password: "",
         contact_number: "", department: ""
@@ -47,7 +45,6 @@ export default function RegisterStaff({ setActiveSection }: Props) {
                         <p className="text-xs text-gray-500">Register Staff</p>
                     </div>
                 </button>
-                <Button buttonText="🚪" className="!w-10 !h-10" onClick={() => router.push("/login")} />
             </header>
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
