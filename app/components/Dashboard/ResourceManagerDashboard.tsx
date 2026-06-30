@@ -92,7 +92,7 @@ export default function ResourceManager() {
                         <header className="flex justify-between mb-6">
                             <div>
                                 <h1 className="text-2xl font-bold mb-4">Hi, {session?.user.name || "user"}!</h1>
-                                <p>Analytics (18th - 24th May 2026)</p>
+                                <p>Analytics (Within this past week)</p>
                             </div>
                             
                             <Button className="!w-10 !h-10 !p-2" buttonText="🔔" onClick={() => {router.push('/notification')}} />

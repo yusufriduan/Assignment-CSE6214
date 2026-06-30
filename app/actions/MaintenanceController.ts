@@ -179,23 +179,45 @@ export async function getUserRequest(userId: string): Promise<MaintenanceRequest
 }
 
 export async function createRequest(reportData: MaintenanceRequest) {
-    try {
-        await adminDb.collection("MaintenanceRequests").doc(reportData.fault_id).set(reportData);
+  try {
+    const userRef = adminDb.doc(`Users/${reportData.request_author}`);
+    const resourceRef = adminDb.doc(`Resources/${reportData.faulty_resource_ref}`);
 
-        const resourceManagersQuery = await adminDb.collection("Users")
-            .where("role", "==", "Resource Manager")
-            .get();
+    const dbPayload = {
+      fault_title: reportData.fault_title,
+      fault_detail: reportData.fault_detail,
+      faulty_resource: resourceRef,
+      request_author: userRef,
+      proof_url: reportData.proof_url,
+      request_date: reportData.request_date,
+      scheduledServiceDate: reportData.scheduledServiceDate,
+      status: reportData.status,
 
-        const notificationPromises = resourceManagersQuery.docs.map(async (doc) => {
-            createNotification(doc.id, "New Maintenance Request", `A new maintenance request has been made for ${reportData.faulty_resource_name}.`);
-        });
+      faulty_resource_name: reportData.faulty_resource_name,
+      faulty_resource_dept: reportData.faulty_resource_dept,
+    };
 
-        await Promise.all(notificationPromises);
-        return { success: true };
-    } catch (error) {
-        console.error("Error submitting fault report:", error);
-        return { success: false };
-    }
+    await adminDb.collection("MaintenanceRequests").doc(reportData.fault_id).set(dbPayload);
+
+    const resourceManagersQuery = await adminDb.collection("Users")
+      .where("role", "==", "Resource Manager")
+      .get();
+
+    const notificationPromises = resourceManagersQuery.docs.map(async (doc) => {
+      await createNotification(
+        doc.id, 
+        "New Maintenance Request", 
+        `A new maintenance request has been made for ${reportData.faulty_resource_name}.`
+      );
+    });
+
+    await Promise.all(notificationPromises);
+    return { success: true };
+
+  } catch (error) {
+    console.error("Error submitting fault report:", error);
+    return { success: false, error: String(error) };
+  }
 }
 
 export async function scheduleService(requestId: string, resource: string, startingDate: Date, email: string, response: string, title: string){
@@ -211,6 +233,30 @@ export async function scheduleService(requestId: string, resource: string, start
         const resourceRef = await adminDb.doc(resource);
         await resourceRef.update({
             status: "Under Maintenance"
+        })
+
+        const bookingRefs = await adminDb.collection("Bookings").where("resource", "==", resourceRef).get();
+        bookingRefs.docs.map( async (doc) => {
+            const data = doc.data();
+            if(!data) return null;
+
+            const bookingStart = data.booking_start.toDate();
+            const bookingEnd = data.booking_end.toDate();
+            const now = new Date();
+
+            if(bookingStart < startingDate && bookingEnd > now){
+                if(data.booking_status === "Awaiting Approval" || data.booking_status === "Pending Re-approval"){
+                    doc.ref.update({
+                        booking_status: "Rejected"
+                    })
+                } else {
+                    doc.ref.update({
+                        booking_status: "Cancelled"
+                    })
+                }
+            }
+
+            
         })
 
         const mailOptions = {

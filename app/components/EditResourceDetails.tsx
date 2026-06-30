@@ -24,6 +24,7 @@ export function EditResourceDetails({resourceId, department}: ResourceDetailsPro
     const [imageSource, setImageSource] = useState<string | null>(null)
     type ResourceTuple = [string, number];
     const [counts, setCounts] = useState<ResourceTuple[]>([]);
+    const [loadingSubmit, setLoadingSubmit] = useState(false);
 
     // input stuff
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -75,6 +76,12 @@ export function EditResourceDetails({resourceId, department}: ResourceDetailsPro
     
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>){
         e.preventDefault();
+
+        if(loadingSubmit){
+            alert('Already processing!')
+        }
+
+        setLoadingSubmit(true);
         
         const formData = new FormData(e.currentTarget);
         const newName = formData.get("room-name");
@@ -145,6 +152,7 @@ export function EditResourceDetails({resourceId, department}: ResourceDetailsPro
             }
                 
         }  
+        setLoadingSubmit(false);
     }
 
     useEffect(() => {
@@ -240,7 +248,7 @@ export function EditResourceDetails({resourceId, department}: ResourceDetailsPro
                         })
                     }
                     <div className="w-full flex justify-center">
-                        <button type="submit" className="bg-accent p-2 rounded-2xl active:scale-95 active:bg-secondary cursor-pointer">Submit Changes</button>
+                        <button disabled={loadingSubmit} type="submit" className="bg-accent p-2 rounded-2xl active:scale-95 active:bg-secondary cursor-pointer disabled:text-gray-600">Submit Changes</button>
                     </div>
                 </div>
             </form>

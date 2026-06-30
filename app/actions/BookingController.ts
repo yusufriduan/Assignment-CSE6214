@@ -511,3 +511,4 @@ export async function modifyBookingStatus(id: string, status: string){
         return {error: error}
     }
 }
+

@@ -4,10 +4,11 @@ import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { MdArrowBack } from "react-icons/md";
-import { fetchResource } from "@/app/actions/ResourceController";
+import { fetchResource} from "@/app/actions/ResourceController";
+import { createRequest } from "@/app/actions/MaintenanceController";
 
 interface FaultReport {
-  resourceId: string;
+  faultTitle: string; // Renamed for clarity vs resourceId
   location: string;
   description: string;
 }
@@ -17,37 +18,40 @@ export default function FaultReportPage() {
   const { data: session, status } = useSession();
   const params = useParams();
   const resourceIdFromUrl = Array.isArray(params?.id) ? params.id[0] : params?.id;
+  
+  // Keep track of fetched resource details to populate MaintenanceRequest
+  const [fetchedResource, setFetchedResource] = useState<any>(null);
+
   const [form, setForm] = useState<FaultReport>({
-    resourceId: "",
-    location: "",
+    faultTitle: "",
+    location: "Loading venue...",
     description: "",
   });
   const [images, setImages] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-useEffect(() => {
+
+  useEffect(() => {
     const fetchVenue = async () => {
-      // Use the string version we created above
       if (!resourceIdFromUrl) return;
       
       try {
         const resource = await fetchResource(resourceIdFromUrl);
         
-        // FIX 2: Check if resource exists before accessing properties
         if (resource) {
-            setForm((prev) => ({ ...prev, location: resource.name }));
+          setFetchedResource(resource);
+          setForm((prev) => ({ ...prev, location: resource.name }));
         } else {
-            setForm((prev) => ({ ...prev, location: "Venue not found" }));
+          setForm((prev) => ({ ...prev, location: "Venue not found" }));
         }
       } catch (error) {
         console.error("Error fetching venue:", error);
         setForm((prev) => ({ ...prev, location: "Unknown Venue" }));
-      } finally {
-        setIsSubmitting(false);
       }
     };
 
     fetchVenue();
   }, [resourceIdFromUrl]);
+
   const handleChange = (field: keyof FaultReport, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
@@ -62,12 +66,37 @@ useEffect(() => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!resourceIdFromUrl) return alert("Resource ID is missing from the URL.");
+    
     setIsSubmitting(true);
     
     try {
-      console.log("Submitting:", form, "Images:", images);
-      alert("Fault report submitted!");
-      setForm({ resourceId: "", location: "", description: "" });
+      // 1. Prepare payload matching MaintenanceRequest interface
+      // Note: Ideally, you upload images to S3/Cloudinary first to get a real proof_url string.
+      const proofUrlPlaceholder = images.length > 0 ? images[0] : ""; 
+
+      const reportPayload = {
+        fault_id: crypto.randomUUID(), // Generates a unique client-side ID or let backend do it
+        fault_title: form.faultTitle,
+        request_author: session?.user?.id || "",
+        request_author_email: session?.user?.email || "anonymous@campus.com",
+        faulty_resource_ref: resourceIdFromUrl,
+        faulty_resource_name: fetchedResource?.name || form.location,
+        faulty_resource_dept: fetchedResource?.department || "General", // Fallback if dept isn't on resource
+        fault_detail: form.description,
+        proof_url: proofUrlPlaceholder,
+        status: "Pending" as const,
+        request_date: new Date(),
+        scheduledServiceDate: null,
+      };
+
+      // 2. Fire the server action
+      const response = await createRequest(reportPayload);
+      
+      alert("Fault report submitted successfully!");
+      
+      // Reset form
+      setForm({ faultTitle: "", location: "", description: "" });
       setImages([]);
       router.push("/dashboard?tab=profile");
     } catch (error) {
@@ -92,7 +121,7 @@ useEffect(() => {
 
   return (
     <div className="h-full bg-gray-50 flex flex-col">
-      {/* Header with Centered Back Button */}
+      {/* Header */}
       <div className="bg-white px-4 py-4 shadow-sm">
         <div className="max-w-lg mx-auto flex items-center justify-center relative">
           <button
@@ -108,14 +137,12 @@ useEffect(() => {
       {/* Main Content */}
       <div className="flex-1 overflow-y-auto pb-8">
         <div className="w-full max-w-lg mx-auto px-4 pt-6">
-          {/* Description Card */}
           <div className="bg-white rounded-2xl p-4 shadow-sm mb-4">
             <p className="text-sm text-gray-600">
               Submit a fault report for campus resources. Our team will review and address the issue.
             </p>
           </div>
 
-          {/* Form */}
           <form className="space-y-4 pb-4" onSubmit={handleSubmit}>
             {/* Report Title */}
             <div className="bg-white rounded-2xl p-4 shadow-sm">
@@ -124,26 +151,23 @@ useEffect(() => {
               </label>
               <input
                 type="text"
-                value={form.resourceId}
-                onChange={(e) => handleChange("resourceId", e.target.value)}
-                placeholder="Equipment name or issue"
+                value={form.faultTitle}
+                onChange={(e) => handleChange("faultTitle", e.target.value)}
+                placeholder="e.g., Projector Blinking, Broken Chair"
                 className="w-full bg-gray-100 rounded-xl px-4 py-3 text-sm text-gray-800 outline-none focus:ring-2 focus:ring-blue-400"
                 required
               />
             </div>
 
-            {/* Venue */}
+            {/* Venue (Read-only representation) */}
             <div className="bg-white rounded-2xl p-4 shadow-sm">
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Venue <span className="text-red-500">*</span>
+                Venue
               </label>
               <input
                 type="text"
                 value={form.location}
-                onChange={(e) => handleChange("location", e.target.value)}
-                placeholder="Room or location"
-                className="w-full bg-gray-100 rounded-xl px-4 py-3 text-sm text-gray-800 outline-none cursor-not-allowed focus:ring-2 focus:ring-blue-400"
-                required
+                className="w-full bg-gray-100 rounded-xl px-4 py-3 text-sm text-gray-400 outline-none cursor-not-allowed"
                 disabled
               />
             </div>
@@ -189,7 +213,6 @@ useEffect(() => {
                 </div>
               </label>
 
-              {/* Display uploaded images */}
               {images.length > 0 && (
                 <div className="mt-3 flex gap-2 overflow-x-auto">
                   {images.map((image, idx) => (
