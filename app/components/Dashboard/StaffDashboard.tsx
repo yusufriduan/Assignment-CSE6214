@@ -6,11 +6,13 @@ import { LuHouse, LuCalendarPlus, LuUsers } from "react-icons/lu";
 import { MdOutlinePerson } from "react-icons/md";
 import { useSearchParams, useRouter } from "next/navigation";
 import HomeDashboard from "../HomeDashboard";
-import PreBooking from "../preBookingStaff";
+import PreBooking from "../preBooking";
 import VenueBooking from "../VenueBooking";
 import Profile from "../UserBoundary/Profile";
 import EditProfile from "../UserBoundary/EditProfile";
+import SettingsPage from "../settings";
 import { UserProvider } from "../UserBoundary/UserContext";
+import BookingSummary from "../BookingSummary";
 // Don't import the page - we'll use router to navigate
 
 interface StaffDashboardProp {
@@ -39,7 +41,9 @@ export default function Staff({ default_sect }: StaffDashboardProp) {
     };
 
     const [activeSection, setActiveSection] = useState(getStartingSection());
+    const [previousSection, setPreviousSection] = useState("home");
     const [bookingData, setBookingData] = useState<BookingData | null>(null);
+    const [settingsEntryPoint, setSettingsEntryPoint] = useState<string | null>(null);
 
     useEffect(() => {
         if (tabParam === "reports") setActiveSection("profile-reports");
@@ -51,15 +55,15 @@ export default function Staff({ default_sect }: StaffDashboardProp) {
         }
     }, [tabParam]);
 
-    const handleNavClick = (newSection: string) => {
-        // If clicking History, navigate to the page
-        if (newSection === "history") {
-            router.push("/student-faculty-history");
-            return;
+    const changeSection = (newSection: string) => {
+        const isEnteringSettings = newSection === 'settings';
+        const isLeavingSettingsSubPage = activeSection === 'edit-profile';
+
+        if (isEnteringSettings && !isLeavingSettingsSubPage) {
+            setSettingsEntryPoint(activeSection);
         }
-        
+        setPreviousSection(activeSection);
         setActiveSection(newSection);
-        
         if (searchParams.get("tab")) {
             router.replace("/dashboard", { scroll: false }); 
         }
@@ -75,17 +79,24 @@ export default function Staff({ default_sect }: StaffDashboardProp) {
     const renderContent = () => {
         switch (activeSection) {
             case "home":
-                return <HomeDashboard setActiveSection={setActiveSection} />;
+                return <HomeDashboard setActiveSection={setActiveSection} previousSection={previousSection} />;
             case "booking":
                 return <PreBooking setActiveSection={setActiveSection} setBookingData={setBookingData} />;
             case "venue-booking":
-                return <VenueBooking setActiveSection={setActiveSection} bookingData={bookingData} />;
+                return <VenueBooking setActiveSection={setActiveSection} bookingData={bookingData} setBookingData={setBookingData} />;
+            case "history":
+                router.push("/student-faculty-history");
+                return null;
             case "profile":
-                return <Profile setActiveSection={setActiveSection} initialTab="bookings" />;
+                return <Profile setActiveSection={changeSection} previousSection={previousSection} initialTab="bookings" />;
             case "edit-profile":
                 return <EditProfile setActiveSection={setActiveSection} />;
+            case "booking-summary":
+                return <BookingSummary setActiveSection={setActiveSection} bookingData={bookingData} setBookingData={setBookingData} />
             case "profile-reports":
-                return <Profile setActiveSection={setActiveSection} initialTab="reports" />
+                return <Profile setActiveSection={changeSection} previousSection={previousSection} initialTab="reports" />
+            case "settings":
+                return <SettingsPage handleNavClick={changeSection} entryPoint={settingsEntryPoint || 'profile'} />;
             default:
                 return <div>Section not found</div>;
         }
@@ -102,7 +113,7 @@ export default function Staff({ default_sect }: StaffDashboardProp) {
                     <NavBar 
                         items={staffNav} 
                         activeSection={activeSection.startsWith("profile") ? "profile" : activeSection} 
-                        onSectionChange={handleNavClick} 
+                        onSectionChange={changeSection} 
                     />
                 </div>
             </div>

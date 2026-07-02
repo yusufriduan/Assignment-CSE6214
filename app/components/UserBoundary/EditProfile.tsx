@@ -62,15 +62,39 @@ export default function EditProfile({ setActiveSection }: EditProfileProps) {
         e.preventDefault();
         if (!userId) return;
 
+        const password = (document.getElementsByName('currentPassword')[0] as HTMLInputElement).value;
+        const newPassword = (document.getElementsByName("newPassword")[0] as HTMLInputElement)?.value;
+        const confirmPassword = (document.getElementsByName("confirmPassword")[0] as HTMLInputElement)?.value;
+
+        const isChangingPassword = password || newPassword || confirmPassword;
+
+        if (isChangingPassword) {
+            if (!password || !newPassword || !confirmPassword) {
+                alert("Please fill in all password fields to change your password.");
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                alert("New password and confirm password do not match.");
+                return;
+            }
+        }
+
         setIsSaving(true);
-        setSaveMessage("");
         try {
-            await modifyUser(userId, {
+            const updateData: any = {
                 name: formData.fullName,
                 email: formData.email,
                 contact_number: formData.phoneNumber,
-                two_factor_enabled: twoFAEnabled
-            });
+                two_factor_enabled: twoFAEnabled,
+            };
+
+            if (isChangingPassword) {
+                updateData.password = password;
+            }
+
+            await modifyUser(userId, updateData);
+
             alert("Profile successfully updated!");
             setSaveMessage("Profile updated successfully.");
         } catch (error) {
@@ -134,6 +158,7 @@ export default function EditProfile({ setActiveSection }: EditProfileProps) {
                     <div className ="flex flex-row gap-4 items-center w-full">
                         <MdPassword className="text-4xl text-white bg-foreground p-1 rounded-xl w-15" />
                         <Input 
+                            name="currentPassword"
                             key="currentPassword" 
                             label="Current Password" 
                             type="password" 
@@ -145,6 +170,7 @@ export default function EditProfile({ setActiveSection }: EditProfileProps) {
                     <div className ="flex flex-row gap-4 items-center w-full">
                         <MdPassword className="text-4xl text-white bg-foreground p-1 rounded-xl w-15" />
                         <Input 
+                            name="newPassword"
                             key="newPassword" 
                             label="New Password" 
                             type="password" 
@@ -156,6 +182,7 @@ export default function EditProfile({ setActiveSection }: EditProfileProps) {
                     <div className ="flex flex-row gap-4 items-center w-full">
                         <MdPassword className="text-4xl text-white bg-foreground p-1 rounded-xl w-15" />
                         <Input 
+                            name="confirmPassword"
                             key="confirmPassword" 
                             label="Confirm New Password" 
                             type="password" 
@@ -177,7 +204,7 @@ export default function EditProfile({ setActiveSection }: EditProfileProps) {
                     </div>
                 </div>
                 <div className="flex flex-row gap-4 w-full justify-center">
-                    <Button type="reset" className="!w-fit !rounded-3xl !py-3 !px-5 rounded-md !hover:bg-blue-600 !transition-colors" buttonText="Cancel" onClick={() => setActiveSection("profile")} />
+                    <Button type="reset" className="!w-fit !rounded-3xl !py-3 !px-5 rounded-md !hover:bg-blue-600 !transition-colors" buttonText="Cancel" onClick={() => setActiveSection("settings")} />
                     <Button type="submit" className="!w-fit !rounded-3xl !py-3 !px-5 rounded-md !hover:bg-blue-600 !transition-colors" buttonText={isSaving ? "Saving..." : "Save Changes"} disabled={isSaving} />
                 </div>
             </form>

@@ -10,6 +10,8 @@ import { AnalyticsUI } from "../AnalyticsUI";
 import { MaintenanceUI } from "../MaintenanceUI";
 import Button from "../Button";
 import { useSession } from "next-auth/react";
+import SettingsPage from "../settings";
+import EditProfile from "../UserBoundary/EditProfile"
 
 
 
@@ -23,19 +25,28 @@ export default function ResourceManager() {
     const tabParam = searchParams.get("tab"); 
     
     const [activeSection, setActiveSection] = useState(tabParam || "manage-booking");
+    const [previousSection, setPreviousSection] = useState("manage-booking");
+    const [settingsEntryPoint, setSettingsEntryPoint] = useState<string | null>(null);
 
     useEffect(() => {
         if (tabParam) setActiveSection(tabParam);
     }, [tabParam]);
 
     const handleNavClick = (newSection: string) => {
+        const isEnteringSettings = newSection === 'settings';
+        const isLeavingSettingsSubPage = activeSection === 'edit-profile';
+
+        if (isEnteringSettings && !isLeavingSettingsSubPage) {
+            setSettingsEntryPoint(activeSection);
+        }
+        setPreviousSection(activeSection);
         setActiveSection(newSection);
         if (searchParams.get("tab")) {
             router.replace("/dashboard", { scroll: false }); 
         }
     };
 
-    const studentNav : NavItem[] = [
+    const resourceManagerNav : NavItem[] = [
         { id: "manage-booking", label: "Booking", icon: LuCalendarPlus },
         { id: "manage-resources", label: "Resources", icon: LuBookPlus },
         { id: "analytics", label: "Analytics", icon: MdOutlineMonitorHeart },
@@ -53,7 +64,8 @@ export default function ResourceManager() {
                                 <p>Manage Pending Bookings</p>
                             </div>
                             
-                            <Button className="!w-10 !h-10 !p-2" buttonText="🔔" />
+                            <Button className="!w-10 !h-10 !p-2" buttonText="🔔" onClick={() => {router.push('/notification')}} />
+                            <Button className="!w-10 !h-10 !p-2 ml-2" buttonText="⚙️" onClick={() => handleNavClick('settings')} />
                         </header>
                         <BookingUI pageType="request_list" />
                     </div>
@@ -67,7 +79,8 @@ export default function ResourceManager() {
                                 <p>Resource List</p>
                             </div>
                             
-                            <Button className="!w-10 !h-10 !p-2" buttonText="🔔" />
+                            <Button className="!w-10 !h-10 !p-2" buttonText="🔔" onClick={() => {router.push('/notification')}} />
+                            <Button className="!w-10 !h-10 !p-2 ml-2" buttonText="⚙️" onClick={() => handleNavClick('settings')} />
                         </header>
                         <ResourceUI pageType="list" />
                     </div>
@@ -79,10 +92,11 @@ export default function ResourceManager() {
                         <header className="flex justify-between mb-6">
                             <div>
                                 <h1 className="text-2xl font-bold mb-4">Hi, {session?.user.name || "user"}!</h1>
-                                <p>Analytics (18th - 24th May 2026)</p>
+                                <p>Analytics (Within this past week)</p>
                             </div>
                             
-                            <Button className="!w-10 !h-10 !p-2" buttonText="🔔" />
+                            <Button className="!w-10 !h-10 !p-2" buttonText="🔔" onClick={() => {router.push('/notification')}} />
+                            <Button className="!w-10 !h-10 !p-2 ml-2" buttonText="⚙️" onClick={() => handleNavClick('settings')} />
                         </header>
                         <AnalyticsUI />
                     </div>
@@ -96,11 +110,16 @@ export default function ResourceManager() {
                                 <h1 className="text-2xl font-bold mb-4">Hi, {session?.user.name || "user"}!</h1>
                                 <p>Maintenance Request List</p>
                             </div>
-                            <Button className="!w-10 !h-10 !p-2" buttonText="🔔" />
+                            <Button className="!w-10 !h-10 !p-2" buttonText="🔔" onClick={() => {router.push('/notification')}} />
+                            <Button className="!w-10 !h-10 !p-2 ml-2" buttonText="⚙️" onClick={() => handleNavClick('settings')} />
                         </header>
                         <MaintenanceUI pageType="list" />;
                     </div>
                 )
+            case "settings":
+                return <SettingsPage handleNavClick={handleNavClick} entryPoint={settingsEntryPoint || 'manage-booking'} />;
+            case "edit-profile":
+                return <EditProfile setActiveSection={handleNavClick} />;
             default:
                 return <div>Section not found</div>;
         }
@@ -120,7 +139,7 @@ export default function ResourceManager() {
       {/* The Dynamic Navbar */}
       <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[999] drop-shadow-2xl">
         <NavBar 
-            items={studentNav} 
+            items={resourceManagerNav} 
             activeSection={activeSection.startsWith("profile") ? "profile" : activeSection} 
             onSectionChange={handleNavClick} 
         />

@@ -8,16 +8,17 @@ interface ResourceUIProps{
     pageType: "list" | "detail" | "edit" | "add";
     resourceId?: string;
     department?: string;
+    userRole?: "student" | "campus staff" | "resource manager";
 }
 
-export class ResourceUI extends React.Component<ResourceUIProps>{
+export function ResourceUI({ pageType, resourceId, department, userRole }: ResourceUIProps){
     
-    public static displayList(){
+    if (pageType === "list"){
         return(
             <div>
                 {
                     [...DEPARTMENTS.entries()].map(([key, val]) => (
-                        <ResourceSelectDepartment key={key} department={key} />
+                        <ResourceSelectDepartment key={key} department={key} onSelectResource={(id: string) => {console.log("Selected resource:", id);}} />
                     ))
                 }
                 <div className="h-32 mt-2"></div>
@@ -26,29 +27,21 @@ export class ResourceUI extends React.Component<ResourceUIProps>{
         );
     }
 
-    public static viewResource(resourceID: string){
+    if (pageType === "detail" && resourceId && userRole) {
         return(
-            <ResourceDetails resourceId={resourceID} />
-        )
-    }
-    
-    public static modifyResourceForm(resourceID?: string, department?: string){
-        return(
-            <EditResourceDetails resourceId={resourceID} department={department} />
-        )
-    }
-
-    render() {
-
-        const { pageType, resourceId, department } = this.props;
-
-        return (
-            <div>
-                {pageType === "list" && ResourceUI.displayList()}
-                {pageType === "detail" && resourceId !== undefined && ResourceUI.viewResource(resourceId)}
-                {pageType === "edit" && resourceId !== undefined && ResourceUI.modifyResourceForm(resourceId)}
-                {pageType === "add" && ResourceUI.modifyResourceForm(undefined, department)}
-            </div>
+            <ResourceDetails resourceId={resourceId} userRole={userRole} />
         );
     }
+    
+    if (pageType === "edit" && resourceId) {
+        return(
+            <EditResourceDetails resourceId={resourceId} department={department} />
+        )
+    }
+
+    if (pageType === "add") {
+        return <EditResourceDetails department={department} />;
+    }
+
+    return null;
 }

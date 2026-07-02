@@ -89,7 +89,7 @@ export async function getUserBookings(): Promise<Booking[]> {
                         booking_status: data.booking_status || "Unknown",
                         booking_reason: data.booking_reason || "",
                         request_created_at: data.request_created_at?.toDate ? data.request_created_at.toDate().toISOString() : data.request_created_at,
-                        prev_booking: data.prev_booking || null
+                        prev_booking: doc.id || null
                     });
                     
                 } catch (err) {
@@ -106,22 +106,41 @@ export async function getUserBookings(): Promise<Booking[]> {
     }
 }
 
-export async function createBooking(bookingData: Booking) {
+export async function createBooking(data: any) {
     try {
+
+        console.log(data);
+        const resourceRef = adminDb.collection("Resources").doc(data.resourceId);
+        const resourceSnapshot = await resourceRef.get();
+        const resourceData = resourceSnapshot.data()
+        const userRef = adminDb.collection("Users").doc(data.userId)
+
+        const bookingData = {
+            booking_owner: userRef, // Store as a DocumentReference
+            booking_start: data.bookingStart,
+            booking_end: data.bookingEnd,
+            booking_reason: data.bookingPurpose,
+            resource: resourceRef, // Store as a DocumentReference
+            booking_status: "Awaiting Approval",
+            request_created_at: data.request_created_date
+        };
+
+        if (!data.resourceId) {
+            throw new Error("No venue selected.");
+        }
+
         if (bookingData.booking_end <= bookingData.booking_start) {
             throw new Error("Booking end time must be after start time");
         }
 
-        await adminDb.collection("Bookings").add({
-            ...bookingData,
-        });
+        await adminDb.collection("Bookings").add(bookingData);
 
         const resourceManagersQuery = await adminDb.collection("Users")
             .where("role", "==", "Resource Manager")
             .get();
 
         const notificationPromises = resourceManagersQuery.docs.map(async (doc) => {
-            createNotification(doc.id, "New Booking Request", `A new booking request has been made for ${bookingData.resource.resource_name}.`);
+            createNotification(doc.id, "New Booking Request", `A new booking request has been made for ${resourceData?.resource_name}.`);
         });
 
         await Promise.all(notificationPromises);
@@ -172,7 +191,7 @@ export async function fetchAllBooking(){
                     booking_reason: data.booking_reason,
                     resource: resource,
                     request_created_at: data.request_created_at.toDate(),
-                    prev_booking: data.prev_booking
+                    prev_booking: doc.id
                 })
             }
         }
@@ -189,6 +208,16 @@ export async function rejectBooking(bookingId: string, email: string, reason: st
         await bookingRef.update({
             booking_status: "Rejected"
         })
+
+        const booking = await bookingRef.get();
+        const bookingD = await booking.data();
+        if(bookingD){
+            const userRef = bookingD.booking_owner as DocumentReference;
+            if(userRef){
+                const userId = userRef.id
+                await createNotification(userId, "Booking Rejected", `Your booking request for ${resource} has been rejected. Reason: ${reason}`);
+            }
+        }
 
         // send email
         const mailOptions = {
@@ -216,8 +245,6 @@ export async function rejectBooking(bookingId: string, email: string, reason: st
         };
 
         await transporter.sendMail(mailOptions);
-
-        await createNotification(bookingId, "Booking Rejected", `Your booking request for ${resource} has been rejected. Reason: ${reason}`);
 
         return {success: true}
     } catch (error){
@@ -319,8 +346,25 @@ If you wish to contact us, feel free to reply to this email and a staff member w
 
         await transporter.sendMail(mailOptions);
 
-        await createNotification(bookingId, "Booking Approved", `Your booking request for ${resource} has been approved.`);
+        const booking = await bookingRef.get();
+        const bookingD = await booking.data();
+        if(bookingD){
+            const userRef = bookingD.booking_owner as DocumentReference;
+            if(userRef){
+                const userId = userRef.id
+                await createNotification(userId, "Booking Approved", `Your booking request for ${resource} has been approved.`);
 
+            }
+
+            const prevBookingRef = bookingD.prev_booking as DocumentReference;
+            await bookingRef.update({
+                prev_booking: null
+            })
+            if(prevBookingRef){
+                await prevBookingRef.delete();
+            }
+        }
+       
         return { success: true };
     } catch (error: any) {
         console.log(error);
@@ -457,7 +501,7 @@ export async function modifyBookingStatus(id: string, status: string){
             const bookingData = bookingSnap.data()
             if(bookingData){
                 const resourceRef = bookingData.resource;
-                await resourceRef({
+                await resourceRef.update({
                     status: "Available"
                 })
             }
@@ -467,3 +511,4 @@ export async function modifyBookingStatus(id: string, status: string){
         return {error: error}
     }
 }
+

@@ -4,14 +4,21 @@ import { useRouter, useSearchParams } from "next/navigation"
 interface BackButtonProp{
     buttonName: string,
     buttonDesc: string,
+    onClick?: () => void;
 }
 
-export default function BackButton({buttonName, buttonDesc}: BackButtonProp){
+export default function BackButton({buttonName, buttonDesc, onClick}: BackButtonProp){
 
     const router = useRouter();
     const searchParams = useSearchParams();
 
     const handleBackClick = () => {
+
+        if (onClick) {
+            onClick();
+            return;
+        }
+
         const source = searchParams.get("source");
         if (source)
             router.push(`/dashboard?tab=${source}`);

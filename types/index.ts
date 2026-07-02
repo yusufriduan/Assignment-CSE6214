@@ -31,7 +31,7 @@ export interface Booking {
     booking_reason: string;
     resource: Resource;
     request_created_at: Date;
-    prev_booking?: DocumentReference | null;
+    prev_booking?: string | null;
 }
 
 export interface MaintenanceRequest{

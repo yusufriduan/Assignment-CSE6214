@@ -6,7 +6,6 @@ import BookingList from "./BookingList";
 
 interface BookingUIProps{
     pageType: "list" | "request_list" | "detail" | "edit";
-    bookingId?: string;
 }
 
 export class BookingUI extends React.Component<BookingUIProps>{
@@ -27,7 +26,7 @@ export class BookingUI extends React.Component<BookingUIProps>{
 
     render() {
 
-        const { pageType, bookingId } = this.props;
+        const { pageType} = this.props;
 
         return (
             <div>

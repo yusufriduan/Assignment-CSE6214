@@ -2,31 +2,36 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-// import { getAllFeedbacks } from "@/app/actions/UserController";
 import { useUser } from "@/app/components/UserBoundary/UserContext";
-import { MdOutlinePerson, MdChevronRight } from "react-icons/md";
+import { fetchFeedbacks } from "@/app/actions/FeedbackController";
+import { MdOutlinePerson } from "react-icons/md";
 import Button from "../Button";
 
 interface Feedback {
-    id: string;
-    comments?: string;
-    message?: string;
+    setActiveSection: (section: string) => void;
+    id: number;
+    timestamp: string;
+    name: string;
+    studentId: string;
+    rating: string;
+    feature: string;
+    comments: string;
 }
 
-export default function Feedbacks() {
+export default function Feedbacks({ setActiveSection }: { setActiveSection: (section: string) => void }) {
     const router = useRouter();
     const { user: adminUser, isLoading } = useUser();
     const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
     const [fetching, setFetching] = useState(true);
 
-    // useEffect(() => {
-    //     async function fetchFeedbacks() {
-    //         const data = await getAllFeedbacks();
-    //         setFeedbacks(data as Feedback[]);
-    //         setFetching(false);
-    //     }
-    //     fetchFeedbacks();
-    // }, []);
+    useEffect(() => {
+        async function loadFeedbacks() {
+            const data = await fetchFeedbacks();
+            setFeedbacks(data);
+            setFetching(false);
+        }
+        loadFeedbacks();
+    }, []);
 
     function getGreeting() {
         const h = new Date().getHours();
@@ -44,7 +49,7 @@ export default function Feedbacks() {
                     </h1>
                     <p className="text-sm text-gray-600">Feedbacks</p>
                 </div>
-                <Button buttonText="🚪" className="!w-10 !h-10" onClick={() => router.push("/login")} />
+                <Button buttonText="⚙️" className="!w-10 !h-10" onClick={() => setActiveSection("settings")} />
             </header>
 
             <div className="flex flex-col gap-3">
@@ -52,18 +57,21 @@ export default function Feedbacks() {
                     <p className="text-center text-gray-400 mt-10">Loading feedbacks...</p>
                 ) : feedbacks.length === 0 ? (
                     <p className="text-center text-gray-400 mt-10">No feedbacks yet.</p>
-                ) : feedbacks.map((fb, i) => (
-                    <div key={fb.id} className="flex items-center bg-background/20 z-50 backdrop-blur-md rounded-2xl px-4 py-4 gap-3 shadow-md cursor-pointer hover:bg-background/30 transition-colors">
-                        <div className="w-10 h-10 rounded-full bg-gray-400 flex-shrink-0 flex items-center justify-center">
-                            <MdOutlinePerson size={20} className="text-white" />
+                ) : feedbacks.map((fb) => (
+                    <div key={fb.id} className="bg-background/20 z-50 backdrop-blur-md rounded-2xl px-4 py-4 flex flex-col gap-2 shadow-md">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-gray-400 flex-shrink-0 flex items-center justify-center">
+                                <MdOutlinePerson size={20} className="text-white" />
+                            </div>
+                            <div>
+                                <p className="font-bold text-sm">{fb.name}</p>
+                                <p className="text-xs text-gray-500">{fb.studentId}</p>
+                            </div>
+                            <div className="ml-auto text-sm font-bold">⭐ {fb.rating}/5</div>
                         </div>
-                        <div className="flex-1">
-                            <p className="font-bold text-sm">Report #{String(i + 1).padStart(3, "0")}</p>
-                            <p className="text-xs text-gray-500 line-clamp-2">{fb.comments || fb.message || "No description"}</p>
-                        </div>
-                        <div className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center flex-shrink-0">
-                            <MdChevronRight size={18} />
-                        </div>
+                        <p className="text-xs text-gray-500">{fb.feature}</p>
+                        {fb.comments && <p className="text-sm">{fb.comments}</p>}
+                        <p className="text-xs text-gray-400">{fb.timestamp}</p>
                     </div>
                 ))}
             </div>

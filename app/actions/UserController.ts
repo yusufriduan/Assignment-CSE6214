@@ -155,7 +155,15 @@ export async function fetchUser(user_id: string) {
 
 export async function modifyUser(user_id: string, data: Partial<User>) {
     try {
-        await adminDb.collection("Users").doc(user_id).update(data);
+        const dataToUpdate = { ...data };
+
+        if (!dataToUpdate.password || dataToUpdate.password.trim() === "") {
+            delete dataToUpdate.password;
+        } else {
+            dataToUpdate.password = await bcrypt.hash(dataToUpdate.password, 10);
+        } 
+
+        await adminDb.collection("Users").doc(user_id).update(dataToUpdate);
         return { success: true };
     } catch (error) {
         console.error("Error updating user:", error);

@@ -45,7 +45,7 @@ export default function BookingList(){
                 })
             );
 
-            const pending = updatedList.filter(b => b.booking_status === "Awaiting Approval");
+            const pending = updatedList.filter(b => (b.booking_status === "Awaiting Approval" || b.booking_status === "Pending Re-approval"));
             const approved = updatedList.filter(b => b.booking_status === "Booked" || b.booking_status === "Check-in");
             const completed = updatedList.filter(b => b.booking_status === "Ended");
             const rejected = updatedList.filter(b => b.booking_status === "Rejected");

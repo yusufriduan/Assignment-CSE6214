@@ -4,8 +4,8 @@ import BackButton from "@/app/components/BackButton";
 import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
 import NavBar, {NavItem} from "@/app/components/NavBar";
-import { MdHome, MdPerson } from "react-icons/md";
-import { FaCalendarPlus } from "react-icons/fa";
+import { LuCalendarPlus, LuBookPlus } from "react-icons/lu";
+import { MdOutlineMonitorHeart, MdOutlineReportGmailerrorred } from "react-icons/md";
 import { redirect } from "next/navigation";
 import { EquipmentCounter } from "./EquipmentCounter";
 import Input from "./input";
@@ -24,6 +24,7 @@ export function EditResourceDetails({resourceId, department}: ResourceDetailsPro
     const [imageSource, setImageSource] = useState<string | null>(null)
     type ResourceTuple = [string, number];
     const [counts, setCounts] = useState<ResourceTuple[]>([]);
+    const [loadingSubmit, setLoadingSubmit] = useState(false);
 
     // input stuff
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -53,10 +54,11 @@ export function EditResourceDetails({resourceId, department}: ResourceDetailsPro
         }
     };
     
-    const bookingRecipientNav : NavItem[] = [
-        { id: "home", label: "Home", icon: MdHome },
-        { id: "booking", label: "Booking", icon: FaCalendarPlus },
-        { id: "profile", label: "Profile", icon: MdPerson },
+    const resourceManagerNav : NavItem[] = [
+        { id: "manage-booking", label: "Booking", icon: LuCalendarPlus },
+        { id: "manage-resources", label: "Resources", icon: LuBookPlus },
+        { id: "analytics", label: "Analytics", icon: MdOutlineMonitorHeart },
+        { id: "reports", label: "Maintenance", icon: MdOutlineReportGmailerrorred },
     ];
 
     const onToggleChange = (id: string) => {
@@ -74,6 +76,12 @@ export function EditResourceDetails({resourceId, department}: ResourceDetailsPro
     
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>){
         e.preventDefault();
+
+        if(loadingSubmit){
+            alert('Already processing!')
+        }
+
+        setLoadingSubmit(true);
         
         const formData = new FormData(e.currentTarget);
         const newName = formData.get("room-name");
@@ -144,6 +152,7 @@ export function EditResourceDetails({resourceId, department}: ResourceDetailsPro
             }
                 
         }  
+        setLoadingSubmit(false);
     }
 
     useEffect(() => {
@@ -239,7 +248,7 @@ export function EditResourceDetails({resourceId, department}: ResourceDetailsPro
                         })
                     }
                     <div className="w-full flex justify-center">
-                        <button type="submit" className="bg-accent p-2 rounded-2xl active:scale-95 active:bg-secondary cursor-pointer">Submit Changes</button>
+                        <button disabled={loadingSubmit} type="submit" className="bg-accent p-2 rounded-2xl active:scale-95 active:bg-secondary cursor-pointer disabled:text-gray-600">Submit Changes</button>
                     </div>
                 </div>
             </form>
@@ -247,7 +256,7 @@ export function EditResourceDetails({resourceId, department}: ResourceDetailsPro
             <div className="h-32"></div>
             <div className="fixed bottom-8 left-1/2 -translate-x-1/2 drop-shadow-2xl">
                 <NavBar 
-                    items={bookingRecipientNav} 
+                    items={resourceManagerNav} 
                     activeSection={activeSection} 
                     onSectionChange={onToggleChange} 
                 />

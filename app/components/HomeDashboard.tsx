@@ -7,9 +7,10 @@ import { useUser } from "@/app/components/UserBoundary/UserContext";
 
 interface HomeProps {
     setActiveSection: (section: string) => void;
+    previousSection: string; // Optional prop to track the previous section
 }
 
-export default function HomeDashboard({ setActiveSection }: HomeProps) {
+export default function HomeDashboard({ setActiveSection, previousSection }: HomeProps) {
     const router = useRouter();
     const { user, isLoading: isUserLoading } = useUser();
     const [summary, setSummary] = useState({
@@ -18,6 +19,7 @@ export default function HomeDashboard({ setActiveSection }: HomeProps) {
         upcomingEvents: [] as Booking[],
     });
     const [isLoading, setIsLoading] = useState(true);
+
 
     const getGreeting = () => {
         const currentHour = new Date().getHours();

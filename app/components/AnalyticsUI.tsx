@@ -23,7 +23,7 @@ const DashboardComponent: React.FC = () => {
 
     return(
         <div>
-            <div id="content-section" className="w-96">
+            <div id="content-section" className="w-85">
                 <div id="booking-section-header" className="flex flex-row justify-between items-center">
                     <h1 className="font-semibold text-sm">Total number of Bookings</h1>
                     <h1 className="font-semibold text-sm flex flex-row justify-center items-center">{analyticsData?.bookingCount} total</h1>

@@ -1,27 +1,35 @@
 import Button from "../Button";
 import BookingCard from "../BookingCard";
 import ReportCard from "../ReportCard";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Booking, MaintenanceRequest, User } from "@/types";
+import { Booking, MaintenanceRequest } from "@/types";
 import { getUserBookings } from "@/app/actions/BookingController";
 import { getUserRequest } from "@/app/actions/MaintenanceController";
 import { useUser } from "@/app/components/UserBoundary/UserContext";
-import { signOut } from "next-auth/react";
 
 interface ProfileProps {
     setActiveSection: (section: string) => void;
+    previousSection: string;
     initialTab?: "bookings" | "reports"
 }
 
-export default function Profile({ setActiveSection, initialTab = "bookings" }: ProfileProps) {
+export default function Profile({ setActiveSection, previousSection, initialTab = "bookings" }: ProfileProps) {
     const router = useRouter();
+    const searchParams = useSearchParams();    
+    const tabParam = searchParams.get("tab"); 
     const [currentTab, setCurrentTab] = useState<"bookings" | "reports">(initialTab);
     const [myBooking, setMyBooking] = useState<Booking[]>([]);
     const [myReports, setMyReports] = useState<MaintenanceRequest[]>([]);
     const [upcomingIndex, setUpcomingIndex] = useState(0);
     const [pastIndex, setPastIndex] = useState(0);
     const { user: userProfile, isLoading: isUserLoading } = useUser();
+    const handleNavClick = (newSection: string) => {
+        setActiveSection(newSection);
+        if (searchParams.get("tab")) {
+            router.replace("/dashboard", { scroll: false }); 
+        }
+    };
 
     useEffect(() => {
         setCurrentTab(initialTab);
@@ -66,8 +74,7 @@ export default function Profile({ setActiveSection, initialTab = "bookings" }: P
                     <p className="text-sm truncate">{userProfile?.email}</p>
                 </div>
                 <div className="flex flex-row gap-3">
-                    <Button className="!h-10" buttonText="Edit Profile" onClick={() => setActiveSection("edit-profile")} />
-                    <Button className="!w-10 !h-10" buttonText="🚪" onClick={() => signOut({ callbackUrl: '/login' })} />
+                    <Button className="!w-10 !h-10" buttonText="⚙️" onClick={() => handleNavClick("settings")} />
                 </div>
             </header>
             <div className="flex flex-col gap-4 w-full">

@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { MdArrowBack } from "react-icons/md";
-import { fetchBookingForEdit, editBooking } from "../actions/BookingController";
+import { fetchBookingForEdit, editBooking } from "../../actions/BookingController";
 
 interface EditBookingForm {
   booking_id: string;
@@ -20,14 +20,13 @@ interface EditBookingForm {
   venue: string;
   room: string;
   resource_id: string;
-  equipments: string[];
+  equipments: { equipment_name: string; equipment_count: number }[];
   prev_booking: string | null;
 }
 
 export default function EditBookingsPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const bookingId = searchParams.get("id");
+  const { id: bookingId } = useParams<{ id: string }>();
   const { data: session, status } = useSession();
   
   const [form, setForm] = useState<EditBookingForm>({
@@ -49,13 +48,15 @@ export default function EditBookingsPage() {
   });
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [loadingError, setLoadingError] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
+  const minDate = new Date().toISOString().split("T")[0];
 
   useEffect(() => {
     if (bookingId) {
       loadBooking(bookingId);
     } else {
-      setError("No booking ID provided");
+      setLoadingError("No booking ID provided");
       setLoading(false);
     }
   }, [bookingId]);
@@ -63,12 +64,12 @@ export default function EditBookingsPage() {
   const loadBooking = async (id: string) => {
     try {
       setLoading(true);
-      setError(null);
+      setLoadingError(null);
 
       const result = await fetchBookingForEdit(id);
       
       if (result.error) {
-        setError(result.error);
+        setLoadingError(result.error);
         setLoading(false);
         return;
       }
@@ -78,14 +79,29 @@ export default function EditBookingsPage() {
       }
     } catch (err) {
       console.error("Error fetching booking:", err);
-      setError("Failed to load booking details");
+      setLoadingError("Failed to load booking details");
     } finally {
       setLoading(false);
     }
   };
 
   const handleChange = (field: keyof EditBookingForm, value: string) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
+    setFormError(null); // Clear validation errors on change
+    setForm((prev) => {
+      const newForm = { ...prev, [field]: value };
+
+      // When start date changes, if end date is now invalid, reset it to the new start date.
+      if (field === "startDate" && newForm.endDate && new Date(value) > new Date(newForm.endDate)) {
+        newForm.endDate = value;
+      }
+
+      // When start time changes on the same day, if end time is now invalid, reset it.
+      if (field === "startTime" && newForm.startDate === newForm.endDate && value > newForm.endTime) {
+        newForm.endTime = value;
+      }
+
+      return newForm;
+    });
   };
 
   const handleDiscard = () => {
@@ -94,8 +110,22 @@ export default function EditBookingsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError(null);
+
+    const startDateTime = new Date(`${form.startDate}T${form.startTime}`);
+    const endDateTime = new Date(`${form.endDate}T${form.endTime}`);
+
+    if (startDateTime < new Date()) {
+      setFormError("Booking start time cannot be in the past.");
+      return;
+    }
+
+    if (endDateTime <= startDateTime) {
+      setFormError("Booking end time must be after the start time.");
+      return;
+    }
+
     setIsSubmitting(true);
-    setError(null);
 
     try {
       const result = await editBooking({
@@ -111,23 +141,23 @@ export default function EditBookingsPage() {
       });
 
       if (result.error) {
-        setError(result.error);
+        setFormError(result.error);
         setIsSubmitting(false);
         return;
       }
 
       alert("Booking changes submitted for re-approval!");
-      router.push("/dashboard?tab=profile");
+      router.push("/dashboard?tab=bookings");
     } catch (err) {
       console.error("Error submitting edited booking:", err);
-      setError("Failed to submit changes. Please try again.");
+      setFormError("Failed to submit changes. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleBack = () => {
-    router.push("/dashboard?tab=profile");
+    router.push("/dashboard?tab=bookings");
   };
 
   if (status === "loading" || loading) {
@@ -141,7 +171,7 @@ export default function EditBookingsPage() {
     );
   }
 
-  if (error) {
+  if (loadingError) {
     return (
       <div className="h-full bg-gray-50 flex flex-col">
         <div className="bg-white px-4 py-4 shadow-sm">
@@ -157,7 +187,7 @@ export default function EditBookingsPage() {
         </div>
         <div className="flex-1 flex items-center justify-center p-6">
           <div className="text-center">
-            <p className="text-red-500 font-semibold">{error}</p>
+            <p className="text-red-500 font-semibold">{loadingError}</p>
             <button
               onClick={handleBack}
               className="mt-4 bg-blue-500 text-white px-6 py-2 rounded-xl"
@@ -196,6 +226,13 @@ export default function EditBookingsPage() {
             </p>
           </div>
 
+          {/* Form Validation Error */}
+          {formError && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-2xl relative mb-4" role="alert">
+              <span className="block sm:inline">{formError}</span>
+            </div>
+          )}
+
           <form className="space-y-4 pb-4" onSubmit={handleSubmit}>
             {/* User Info (Read-only) */}
             <div className="bg-white rounded-2xl p-4 shadow-sm">
@@ -226,9 +263,10 @@ export default function EditBookingsPage() {
               <div className="grid grid-cols-2 gap-3">
                 <input
                   type="date"
+                  min={minDate}
                   value={form.startDate}
                   onChange={(e) => handleChange("startDate", e.target.value)}
-                  className="w-full bg-gray-100 rounded-xl px-4 py-3 text-sm text-gray-800 outline-none focus:ring-2 focus:ring-blue-400"
+                  className="w-full bg-gray-100 rounded-xl px-4 py-3 text-sm text-gray-800 outline-none focus:ring-2 focus:ring-blue-400 disabled:bg-gray-200"
                   required
                 />
                 <input
@@ -248,16 +286,20 @@ export default function EditBookingsPage() {
               <div className="grid grid-cols-2 gap-3">
                 <input
                   type="date"
+                  min={form.startDate || minDate}
+                  disabled={!form.startDate}
                   value={form.endDate}
                   onChange={(e) => handleChange("endDate", e.target.value)}
-                  className="w-full bg-gray-100 rounded-xl px-4 py-3 text-sm text-gray-800 outline-none focus:ring-2 focus:ring-blue-400"
+                  className="w-full bg-gray-100 rounded-xl px-4 py-3 text-sm text-gray-800 outline-none focus:ring-2 focus:ring-blue-400 disabled:bg-gray-200"
                   required
                 />
                 <input
                   type="time"
+                  min={form.startDate === form.endDate ? form.startTime : undefined}
+                  disabled={!form.endDate}
                   value={form.endTime}
                   onChange={(e) => handleChange("endTime", e.target.value)}
-                  className="w-full bg-gray-100 rounded-xl px-4 py-3 text-sm text-gray-800 outline-none focus:ring-2 focus:ring-blue-400"
+                  className="w-full bg-gray-100 rounded-xl px-4 py-3 text-sm text-gray-800 outline-none focus:ring-2 focus:ring-blue-400 disabled:bg-gray-200"
                   required
                 />
               </div>
@@ -313,8 +355,8 @@ export default function EditBookingsPage() {
               <div className="flex flex-wrap gap-2">
                 {form.equipments && form.equipments.length > 0 ? (
                   form.equipments.map((equipment, index) => (
-                    <span key={index} className="bg-gray-100 rounded-full px-3 py-1 text-xs text-gray-700">
-                      {equipment}
+                    <span key={index} className="bg-gray-100 rounded-full px-3 py-1.5 text-xs text-gray-700">
+                      {equipment.equipment_name} ({equipment.equipment_count})
                     </span>
                   ))
                 ) : (

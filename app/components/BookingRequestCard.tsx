@@ -108,19 +108,19 @@ export default function BookingRequestCard({booking_id, booking_status, booking_
                 <h1 className="text-xs">{DEPARTMENTS.get(resourceDepartment)}</h1>
             </div>
 
-            {booking_status === "Awaiting Approval" && (
+            {(booking_status === "Awaiting Approval" || booking_status === "Pending Re-approval") && (
                 <div className="w-full flex flex-row justify-center items-center mt-4">
                     {showRejectInput && (
-                        <div className="flex flex-row justify-start w-full">
+                        <div onClick={(e) => {e.stopPropagation();}} className="flex flex-row justify-start w-full">
                             <input 
-                                onChange={(e) => setReason(e.target.value)} 
+                                onChange={(e) => {setReason(e.target.value)}} 
                                 name="rejection-reason" 
                                 placeholder="Enter reason for rejecting" 
                                 className="pl-2 w-10/12 border-2 rounded-lg"
                                 disabled={isPending}
                             />
                             <button 
-                                onClick={(e) => onSubmit(e)} 
+                                onClick={(e) => {onSubmit(e)}} 
                                 disabled={isPending}
                                 className="ml-2 bg-accent p-2 rounded-lg cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                             >

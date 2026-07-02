@@ -2,18 +2,25 @@
 
 import { adminDb } from "@/lib/DatabaseInitializer";
 import { cleanFirestoreData } from "@/lib/utils";
+import { Notification } from "@/types";
 
 export async function fetchNotifications(userId: string) {
     try {
         const snapshot = await adminDb.collection("Notifications")
-            .where("user_id", "==", userId)
-            .orderBy("created_at", "desc")
-            .get();
-        
-        return snapshot.docs.map(doc => ({
+        .where("targetUser", "==", userId)
+        .get();
+
+    const notifications = snapshot.docs
+    .map(doc => {
+        const data = doc.data();
+        return {
             notification_id: doc.id,
-            ...cleanFirestoreData(doc.data())
-        }));
+            ...data,
+            timestamp: data.timestamp.toDate(), // convert here, overrides the spread field
+        } as Notification;
+    })
+    .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+    return notifications
     } catch (error) {
         console.error("Error fetching notifications:", error);
         return [];

@@ -5,11 +5,11 @@ import { use } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
-interface ResourceDetailsPageProps{
+interface EditResourceDetailsPageProps{
     params: Promise<{id: string}>;
 }
 
-export default function ResourceDetailsPage({params}: ResourceDetailsPageProps){
+export default function EditResourceDetailsPage({params}: EditResourceDetailsPageProps){
     const router = useRouter();
     const { id } = use(params);
     const { data: session, status } = useSession();
